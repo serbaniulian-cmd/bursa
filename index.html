@@ -184,6 +184,32 @@ svg.ch{width:100%;height:auto;display:block;touch-action:pan-y;cursor:crosshair}
 input[type=range]{padding:0;background:none;accent-color:var(--g2);height:28px}
 .chk{display:flex;gap:8px;align-items:center;font-size:14px;margin-top:4px}
 .chk input{width:auto}
+
+/* buton asistent custom */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes twinkle{50%{transform:scale(.8) rotate(14deg);opacity:.85}}
+@keyframes aipulse{0%,100%{box-shadow:0 10px 28px rgba(91,75,255,.28),0 0 0 1px var(--line),0 0 0 0 rgba(139,77,255,.35)}60%{box-shadow:0 10px 28px rgba(91,75,255,.28),0 0 0 1px var(--line),0 0 0 14px rgba(139,77,255,0)}}
+@keyframes dotb{50%{transform:translateY(-4px);opacity:.45}}
+#askb{width:auto;height:58px;padding:0 22px 0 7px;border-radius:29px;display:flex;align-items:center;gap:10px;font:inherit;font-size:14px;font-weight:700;box-shadow:0 10px 28px rgba(91,75,255,.28),0 0 0 1px var(--line);animation:bump .6s .4s cubic-bezier(.3,1.4,.4,1) both,aipulse 3.2s 1.5s infinite;transition:padding .4s cubic-bezier(.3,.8,.3,1),transform .2s}
+#askb .lbl{max-width:110px;white-space:nowrap;overflow:hidden;transition:max-width .4s cubic-bezier(.3,.8,.3,1),opacity .3s,margin .4s}
+#askb.compact{padding-right:7px}
+#askb.compact .lbl{max-width:0;opacity:0;margin-left:-10px}
+#askb.compact:hover,#askb.compact:focus-visible{padding-right:22px}
+#askb.compact:hover .lbl,#askb.compact:focus-visible .lbl{max-width:110px;opacity:1;margin-left:0}
+#askb:hover{transform:translateY(-2px)}
+.orb{position:relative;flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 30% 25%,#c9bcff,var(--g1) 55%,var(--g2));box-shadow:0 4px 14px rgba(91,75,255,.5),inset 0 0 0 1px rgba(255,255,255,.28)}
+.orb::before{content:"";position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(from 0deg,var(--g1),var(--g3),#6fe0ff,var(--g1));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));animation:spin 4s linear infinite}
+.orb svg{width:22px;height:22px;fill:#fff;animation:twinkle 2.8s ease-in-out infinite}
+.orb.sm{width:38px;height:38px}.orb.sm svg{width:19px;height:19px}
+.aihead{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+.aihead h2{margin:0}
+#ai{background:radial-gradient(circle at 100% 0,rgba(139,77,255,.2),transparent 55%),var(--card)}
+.b.typing{display:flex;gap:5px;padding:14px 16px}
+.b.typing i{width:7px;height:7px;border-radius:50%;background:var(--mute);animation:dotb 1s infinite}
+.b.typing i:nth-child(2){animation-delay:.15s}.b.typing i:nth-child(3){animation-delay:.3s}
+.send input{border-radius:99px;padding-left:18px}
+.send button{width:48px;height:48px;border-radius:50%;font-size:22px;font-weight:700}
+.chips button{background:var(--fill);border:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -206,13 +232,12 @@ input[type=range]{padding:0;background:none;accent-color:var(--g2);height:28px}
 <div id="st"></div>
 <div style="text-align:center;margin-top:8px"><button class="impbtn lnk">Importă din foaia Bani TradeVille</button></div>
 <button id="add" aria-label="Adaugă">+</button>
-<button id="askb" aria-label="Asistent">✨</button>
+<button id="askb" aria-label="Asistent AI"><span class="orb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2.5c.7 5.3 4.4 9 9.5 9.5-5.1.5-8.8 4.2-9.5 9.5-.7-5.300-4.400-9-9.500-9.500 5.100-.5 8.800-4.200 9.500-9.500z"/><path d="M19.2 1.5l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7z" opacity=".9"/></svg></span><span class="lbl">Asistent</span></button>
 <dialog id="ai">
-  <h2>Asistent</h2>
-  <div class="sub" id="mode"></div>
+  <div class="aihead"><span class="orb sm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2.5c.7 5.3 4.4 9 9.5 9.5-5.1.5-8.8 4.2-9.5 9.5-.7-5.300-4.400-9-9.500-9.500 5.100-.5 8.800-4.200 9.500-9.500z"/><path d="M19.2 1.5l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7z" opacity=".9"/></svg></span><div><h2>Asistent</h2><div class="sub" id="mode"></div></div></div>
   <div id="log"></div>
   <div class="chips"><button type="button" data-q="actualizează prețurile">Actualizează prețurile</button></div>
-  <div class="send"><input id="msg" placeholder="ex. am cumpărat 5 EVER la 3,45" autocomplete="off"><button id="go" type="button" aria-label="Trimite">→</button></div>
+  <div class="send"><input id="msg" placeholder="ex. am cumpărat 5 EVER…" autocomplete="off"><button id="go" type="button" aria-label="Trimite">↑</button></div>
   <div class="acts"><button class="no" id="aiclose" type="button">Închide</button></div>
 </dialog>
 
@@ -732,7 +757,8 @@ async function runActions(j) {
 async function send() {
   const t = $("msg").value.trim(); if (!t) return;
   $("msg").value = ""; say(t, "me");
-  const th = say("…", "ai"), j = await ask(t);
+  const th = say("", "ai"); th.classList.add("typing"); th.innerHTML = "<i></i><i></i><i></i>";
+  const j = await ask(t);
   th.remove(); await runActions(j);
 }
 $("askb").onclick = () => {
@@ -746,6 +772,7 @@ $("go").onclick = send;
 $("msg").onkeydown = e => { if (e.key === "Enter") send(); };
 $("ai").querySelectorAll(".chips button").forEach(b => b.onclick = () => { $("msg").value = b.dataset.q; send(); });
 $("live").onclick = () => refreshPrices();
+setTimeout(() => $("askb").classList.add("compact"), 6000);
 setInterval(() => { if (!document.hidden) refreshPrices(); }, 5 * 60 * 1000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshPrices(); });
 setLive(WORKER_URL ? "Se pregătesc prețurile BVB…" : "Prețuri introduse manual · adaugă WORKER_URL pentru BVB", !!WORKER_URL);
