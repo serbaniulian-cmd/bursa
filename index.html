@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bursa">
+<meta name="theme-color" content="#f3f2fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f0e17" media="(prefers-color-scheme: dark)">
+<title>Bursa</title>
+<style>
+:root{color-scheme:light dark;--bg:#f3f2fb;--card:#fff;--ink:#17152b;--mute:#8280a0;--line:#ecebf6;--gain:#0f9d76;--loss:#e5384f;--fill:#efeefa;--g1:#5b4bff;--g2:#8b4dff;--g3:#ff5fa2}
+@media (prefers-color-scheme:dark){:root{--bg:#0f0e17;--card:#1a1926;--ink:#f4f3ff;--mute:#8d8ba7;--line:#2a2940;--gain:#3fd7a8;--loss:#ff7389;--fill:#232235}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 ui-rounded,"SF Pro Rounded","Avenir Next","Segoe UI",system-ui,sans-serif;max-width:560px;margin:0 auto;padding-bottom:calc(100px + env(safe-area-inset-bottom,0px));-webkit-font-smoothing:antialiased}
+header{padding:calc(14px + env(safe-area-inset-top,0px)) 16px 8px}
+.hero{background:linear-gradient(135deg,var(--g1) 0%,var(--g2) 55%,var(--g3) 130%);color:#fff;border-radius:28px;padding:24px 22px 20px;box-shadow:0 10px 30px rgba(91,75,255,.28)}
+.hero .lbl{font-size:13px;opacity:.8}
+.hero .big{font-size:40px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin:6px 0 16px;font-variant-numeric:tabular-nums}
+.hero .row{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;font-variant-numeric:tabular-nums}
+.hero .row span{background:rgba(255,255,255,.18);padding:5px 11px;border-radius:99px}
+.hero .pos{color:#b8ffe3}.hero .neg{color:#ffd0d6}
+.pos{color:var(--gain)}.neg{color:var(--loss)}
+nav{display:flex;gap:4px;margin:10px 16px;padding:4px;background:var(--card);border-radius:99px;position:sticky;top:8px;z-index:5;box-shadow:0 2px 10px rgba(60,50,140,.08)}
+nav button{flex:1;border:0;background:none;padding:10px 4px;border-radius:99px;font:inherit;font-size:14px;font-weight:600;color:var(--mute);cursor:pointer}
+nav button.on{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff}
+main{padding:0 16px}
+.card{background:var(--card);border-radius:22px;padding:16px;margin:12px 0}
+.card:has(.tr){padding:4px 16px}
+.alloc{display:flex;align-items:center;gap:18px;background:var(--card);border-radius:22px;padding:18px;margin:12px 0}
+.alloc svg{width:132px;height:132px;flex:none}
+.dn{font-size:26px;font-weight:700;fill:var(--ink)}.dl{font-size:9px;fill:var(--mute)}
+.legend{flex:1;display:grid;gap:8px;min-width:0}
+.lg{display:flex;align-items:center;gap:8px;font-size:14px}
+.lg span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lg b{font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:10px;height:10px;border-radius:5px;margin-right:8px;flex:none}
+.lg .dot{margin:0}
+.pr{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center}
+.av{width:48px;height:48px;border-radius:16px;color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center}
+.sym{font-size:17px;font-weight:700}
+.sub{color:var(--mute);font-size:13px}
+.v{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.v .sub{font-weight:600}
+.v .sub.pos{color:var(--gain)}.v .sub.neg{color:var(--loss)}
+.px{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;color:var(--mute)}
+.px input{width:130px;margin-left:auto;text-align:right}
+input,select{font:inherit;padding:11px 14px;border:0;border-radius:14px;background:var(--fill);color:var(--ink);width:100%}
+.month{display:flex;justify-content:space-between;margin:22px 6px 0;font-size:13px;font-weight:600;color:var(--mute)}
+.tr{display:grid;grid-template-columns:26px 1fr auto 24px;gap:10px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
+.tr:last-child{border-bottom:0}
+.day{color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
+.tag{font-size:11px;font-weight:700;margin-left:8px;padding:2px 8px;border-radius:99px;background:var(--fill);color:var(--mute)}
+.tag.B{background:rgba(15,157,118,.14);color:var(--gain)}.tag.V{background:rgba(229,56,79,.14);color:var(--loss)}
+.del{border:0;background:none;color:var(--mute);font-size:20px;padding:0;cursor:pointer}
+.empty{text-align:center;color:var(--mute);padding:64px 12px;font-size:15px}
+#add{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:22px;border:0;background:linear-gradient(135deg,var(--g1),var(--g3));color:#fff;font-size:30px;cursor:pointer;box-shadow:0 8px 20px rgba(139,77,255,.4)}
+dialog{border:0;border-radius:28px;padding:24px;width:min(440px,92vw);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(15,14,23,.5)}
+dialog h2{margin:0 0 16px;font-size:20px}
+.seg{display:flex;gap:4px;margin-bottom:16px;background:var(--fill);padding:4px;border-radius:99px}
+.seg button{flex:1;padding:9px 4px;border:0;background:none;border-radius:99px;font:inherit;font-size:14px;font-weight:600;color:var(--mute);cursor:pointer}
+.seg button.on{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff}
+.f{margin-bottom:12px}.f label{display:block;font-size:12px;color:var(--mute);margin-bottom:6px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.acts{display:flex;gap:10px;margin-top:20px}
+.acts button{flex:1;padding:14px;border-radius:16px;border:0;font:inherit;font-weight:700;cursor:pointer}
+.ok{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff}.no{background:var(--fill);color:var(--ink)}
+#st{text-align:center;color:var(--mute);font-size:12px;margin-top:28px;padding:0 24px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--g2);outline-offset:2px}
+.lnk{border:0;background:none;color:var(--g2);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:8px}
+
+/* animații */
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+@keyframes pop{from{opacity:0;transform:translateY(26px) scale(.95)}}
+@keyframes fade{from{opacity:0}}
+@keyframes flow{from{background-position:0% 40%}to{background-position:100% 60%}}
+@keyframes float{to{transform:translate(-26px,30px) scale(1.2)}}
+@keyframes draw{from{stroke-dasharray:0 var(--C)}}
+@keyframes bump{0%{transform:scale(.4) rotate(-90deg);opacity:0}70%{transform:scale(1.1) rotate(8deg)}}
+.hero{position:relative;overflow:hidden;background-size:200% 200%;animation:flow 14s ease-in-out infinite alternate}
+.hero>*{position:relative;z-index:1}
+.hero::after{content:"";position:absolute;right:-50px;top:-50px;width:170px;height:170px;border-radius:50%;background:rgba(255,255,255,.16);filter:blur(10px);animation:float 8s ease-in-out infinite alternate}
+.hero .row span{animation:rise .6s .25s cubic-bezier(.2,.7,.2,1) both}
+.hero .row span:nth-child(2){animation-delay:.33s}.hero .row span:nth-child(3){animation-delay:.41s}.hero .row span:nth-child(4){animation-delay:.49s}
+.anim>*{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
+.anim>*:nth-child(1){animation-delay:0.05s}.anim>*:nth-child(2){animation-delay:0.10s}.anim>*:nth-child(3){animation-delay:0.15s}.anim>*:nth-child(4){animation-delay:0.20s}.anim>*:nth-child(5){animation-delay:0.25s}.anim>*:nth-child(6){animation-delay:0.30s}.anim>*:nth-child(7){animation-delay:0.35s}.anim>*:nth-child(8){animation-delay:0.40s}.anim>*:nth-child(9){animation-delay:0.45s}.anim>*:nth-child(10){animation-delay:0.50s}.anim>*:nth-child(11){animation-delay:0.55s}.anim>*:nth-child(12){animation-delay:0.60s}
+.anim .arc{animation:draw 1.1s cubic-bezier(.3,.7,.2,1) both;animation-delay:calc(var(--i)*.09s + .1s)}
+.anim .lg{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i)*.06s + .35s)}
+.card,.alloc{transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s}
+@media (hover:hover){.card:not(:has(.tr)):hover,.alloc:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(60,50,140,.13)}}
+button{transition:transform .15s,opacity .15s,background .2s}
+button:active{transform:scale(.94)}
+#add{animation:bump .6s .3s cubic-bezier(.3,1.4,.4,1) both;transition:transform .2s}
+#add:hover{transform:rotate(90deg) scale(1.06)}
+#add:active{transform:scale(.9)}
+nav{position:sticky}
+#pill{position:absolute;top:4px;bottom:4px;left:0;width:0;border-radius:99px;background:linear-gradient(135deg,var(--g1),var(--g2));box-shadow:0 4px 12px rgba(91,75,255,.35)}
+#pill.ready{transition:transform .38s cubic-bezier(.3,.8,.3,1),width .38s cubic-bezier(.3,.8,.3,1)}
+nav button{position:relative;z-index:1}
+nav button.on{background:none;color:#fff}
+.tr{transition:opacity .25s,transform .25s}
+.tr.out{opacity:0;transform:translateX(36px)}
+.seg button.on{animation:fade .25s}
+dialog[open]{animation:pop .32s cubic-bezier(.2,.9,.3,1.15)}
+dialog[open]::backdrop{animation:fade .3s}
+input,select{transition:box-shadow .2s,background .2s}
+input:focus{box-shadow:0 0 0 2px var(--g2)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* animații v2 */
+[hidden]{display:none!important}
+@keyframes slideR{from{opacity:0;transform:translateX(38px)}}
+@keyframes slideL{from{opacity:0;transform:translateX(-38px)}}
+@keyframes grow{from{width:0}}
+@keyframes shim{to{background-position:-200% 0}}
+@keyframes ripple{to{transform:scale(1);opacity:0}}
+@keyframes pulse{0%{box-shadow:0 8px 20px rgba(139,77,255,.4),0 0 0 0 rgba(255,95,162,.55)}70%,100%{box-shadow:0 8px 20px rgba(139,77,255,.4),0 0 0 20px rgba(255,95,162,0)}}
+@keyframes glowUp{40%{text-shadow:0 0 24px #7dffcb}}
+@keyframes glowDown{40%{text-shadow:0 0 24px #ff8da0}}
+@keyframes okf{30%{box-shadow:0 0 0 3px var(--gain);background:rgba(15,157,118,.18)}}
+.hero{transform:perspective(800px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));transition:transform .25s ease-out,opacity .2s;will-change:transform}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--mx,75%) var(--my,0%),rgba(255,255,255,.3),transparent 55%);pointer-events:none}
+.big.up{animation:glowUp 1.1s}.big.down{animation:glowDown 1.1s}
+.anim[data-dir="1"]>*{animation-name:slideR}
+.anim[data-dir="-1"]>*{animation-name:slideL}
+.bar{height:6px;border-radius:99px;background:var(--fill);margin-top:14px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px}
+.anim .bar i{animation:grow 1s cubic-bezier(.3,.7,.2,1) both;animation-delay:.3s}
+.arc,.lg{cursor:pointer}
+.arc{transition:opacity .3s,stroke-width .3s}
+.lg{transition:opacity .3s,transform .3s}
+.alloc.sel .arc{opacity:.22}.alloc.sel .arc.on{opacity:1;stroke-width:21}
+.alloc.sel .lg{opacity:.4}.alloc.sel .lg.on{opacity:1;transform:translateX(5px)}
+.alloc.sel .dn{font-size:20px}
+.dn{transition:font-size .2s}
+.rip{position:absolute;border-radius:50%;background:currentColor;opacity:.22;transform:scale(0);animation:ripple .6s ease-out forwards;pointer-events:none}
+button{position:relative;overflow:hidden}
+#add{animation:bump .6s .3s cubic-bezier(.3,1.4,.4,1) both,pulse 2.6s 1.3s infinite}
+nav.stuck{box-shadow:0 10px 28px rgba(60,50,140,.2)}
+nav{transition:box-shadow .3s}
+.okf{animation:okf 1s}
+.sk{height:96px;border-radius:22px;margin:12px 0;background:linear-gradient(90deg,var(--card) 25%,var(--fill) 50%,var(--card) 75%);background-size:200% 100%;animation:shim 1.3s infinite linear}
+dialog[open]>*{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+dialog[open]>*:nth-child(1){animation-delay:0.09s}dialog[open]>*:nth-child(2){animation-delay:0.13s}dialog[open]>*:nth-child(3){animation-delay:0.17s}dialog[open]>*:nth-child(4){animation-delay:0.21s}dialog[open]>*:nth-child(5){animation-delay:0.25s}dialog[open]>*:nth-child(6){animation-delay:0.29s}dialog[open]>*:nth-child(7){animation-delay:0.33s}dialog[open]>*:nth-child(8){animation-delay:0.37s}
+
+/* prețuri live + asistent */
+@keyframes blink{50%{opacity:.25}}
+.live{margin-top:14px;background:none;border:0;color:#fff;opacity:.9;font:inherit;font-size:12px;padding:0;display:flex;align-items:center;gap:7px;cursor:pointer;text-align:left}
+.live::before{content:"";flex:none;width:8px;height:8px;border-radius:4px;background:#7dffcb;animation:blink 1.6s infinite}
+.live.off::before{background:#ffd0d6;animation:none}
+#askb{position:fixed;left:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:22px;border:0;background:var(--card);color:var(--ink);font-size:26px;box-shadow:0 8px 20px rgba(60,50,140,.22);cursor:pointer;animation:bump .6s .4s cubic-bezier(.3,1.4,.4,1) both}
+#log{max-height:42vh;overflow:auto;display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.b{max-width:88%;padding:10px 14px;border-radius:18px;font-size:14px;white-space:pre-wrap;animation:rise .35s both}
+.b.me{align-self:flex-end;background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;border-bottom-right-radius:6px}
+.b.ai{align-self:flex-start;background:var(--fill);border-bottom-left-radius:6px}
+#log .lnk{align-self:flex-start;padding:2px 6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chips button{border:0;background:var(--fill);color:var(--ink);border-radius:99px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+.send{display:flex;gap:8px}
+.send button{flex:none;width:52px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;font-size:20px;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div class="hero">
+    <div class="lbl">Portofoliu · Tradeville</div>
+    <div class="big" id="total">0,00</div>
+    <div class="row" id="sum"></div>
+    <button id="live" class="live" type="button"></button>
+  </div>
+</header>
+<nav id="tabs">
+  <span id="pill"></span>
+  <button data-t="pos" class="on">Poziții</button>
+  <button data-t="tr">Tranzacții</button>
+  <button data-t="dv">Dividende</button>
+</nav>
+<main id="main"></main>
+<div id="st"></div>
+<div style="text-align:center;margin-top:8px"><button class="impbtn lnk">Importă din foaia Bani TradeVille</button></div>
+<button id="add" aria-label="Adaugă">+</button>
+<button id="askb" aria-label="Asistent">✨</button>
+<dialog id="ai">
+  <h2>Asistent</h2>
+  <div class="sub" id="mode"></div>
+  <div id="log"></div>
+  <div class="chips"><button type="button" data-q="actualizează prețurile">Actualizează prețurile</button></div>
+  <div class="send"><input id="msg" placeholder="ex. am cumpărat 5 EVER la 3,45" autocomplete="off"><button id="go" type="button" aria-label="Trimite">→</button></div>
+  <div class="acts"><button class="no" id="aiclose" type="button">Închide</button></div>
+</dialog>
+
+<dialog id="dlg">
+  <h2>Adaugă</h2>
+  <div class="seg" id="kind">
+    <button data-k="B" class="on" type="button">Cumpărare</button>
+    <button data-k="V" type="button">Vânzare</button>
+    <button data-k="D" type="button">Dividend</button>
+  </div>
+  <div class="two">
+    <div class="f"><label for="fd">Data</label><input id="fd" type="date"></div>
+    <div class="f"><label for="fs">Simbol</label><input id="fs" autocapitalize="characters" placeholder="ex. SNP"></div>
+  </div>
+  <div class="two" id="trf">
+    <div class="f"><label for="fq">Număr acțiuni</label><input id="fq" type="number" inputmode="decimal" step="any"></div>
+    <div class="f"><label for="fp">Preț (RON)</label><input id="fp" type="number" inputmode="decimal" step="any"></div>
+  </div>
+  <div class="f" id="fee"><label for="ff">Comision (RON)</label><input id="ff" type="number" inputmode="decimal" step="any" placeholder="0"></div>
+  <div class="f" id="dvf" hidden><label for="fa">Sumă încasată (RON, net)</label><input id="fa" type="number" inputmode="decimal" step="any"></div>
+  <div class="acts"><button class="no" id="cancel" type="button">Renunță</button><button class="ok" id="save" type="button">Salvează</button></div>
+</dialog>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// Pune aici configurarea din noul proiect Firebase (Project settings > Your apps > Web).
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBhcqKI-BuANUFoGnG15qCG6PmUIbbmido",
+  authDomain: "bursa2027-5f1ad.firebaseapp.com",
+  projectId: "bursa2027-5f1ad",
+  storageBucket: "bursa2027-5f1ad.firebasestorage.app",
+  messagingSenderId: "680058097125",
+  appId: "1:680058097125:web:46b5e05a40ff7fd846330c"
+};
+
+// Adresa Worker-ului Cloudflare (vezi worker.js), ex. "https://bursa.contul-tau.workers.dev"
+const WORKER_URL = "https://bursa.serbanlaurentiuiulian.workers.dev/";
+
+const useFb = !!FIREBASE_CONFIG.projectId && typeof firebase !== "undefined";
+let state = { tr: [], dv: [], px: {} };
+let ref = null, tab = "pos", kind = "B";
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const money = n => n.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const qty = n => n.toLocaleString("ro-RO", { maximumFractionDigits: 4 });
+const sign = n => (n > 0 ? "+" : "") + money(n);
+const cls = n => (n > 0.004 ? "pos" : n < -0.004 ? "neg" : "");
+const MONTHS = ["Ianuarie","Februarie","Martie","Aprilie","Mai","Iunie","Iulie","August","Septembrie","Octombrie","Noiembrie","Decembrie"];
+const monthName = ym => MONTHS[+ym.slice(5, 7) - 1] + " " + ym.slice(0, 4);
+const setStatus = t => { $("st").textContent = t; };
+
+function load() {
+  if (useFb) {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    ref = firebase.firestore().collection("bursa").doc("date");
+    $("main").innerHTML = '<div class="sk"></div><div class="sk"></div><div class="sk"></div>';
+    ref.onSnapshot(s => {
+      if (s.exists) state = Object.assign({ tr: [], dv: [], px: {} }, s.data());
+      setStatus("Sincronizat între telefon și PC");
+      render();
+    }, () => setStatus("Eroare de sincronizare"));
+  } else {
+    try { state = Object.assign(state, JSON.parse(localStorage.getItem("bursa") || "{}")); } catch (e) {}
+    setStatus("Firebase nu este configurat: datele rămân doar pe acest dispozitiv");
+    render();
+  }
+}
+function save() {
+  if (useFb) ref.set(state).catch(() => setStatus("Eroare la salvare"));
+  else { try { localStorage.setItem("bursa", JSON.stringify(state)); } catch (e) {} }
+  render();
+}
+
+function positions() {
+  const m = {};
+  const list = [...state.tr].sort((a, b) => a.d.localeCompare(b.d));
+  for (const x of list) {
+    const p = m[x.s] || (m[x.s] = { s: x.s, q: 0, c: 0, r: 0 });
+    if (x.t === "B") { p.c += x.q * x.p + x.f; p.q += x.q; }
+    else {
+      const avg = p.q ? p.c / p.q : 0;
+      p.r += x.q * x.p - x.f - x.q * avg;
+      p.c -= x.q * avg; p.q -= x.q;
+    }
+    if (Math.abs(p.q) < 1e-9) { p.q = 0; p.c = 0; }
+  }
+  return Object.values(m);
+}
+
+const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let shown = 0, raf = 0, animateNext = true, dirNext = 0;
+function countTo(v) {
+  cancelAnimationFrame(raf);
+  const el = $("total"), from = shown, t0 = performance.now();
+  if (from && v !== from && !calm) { el.classList.remove("up", "down"); void el.offsetWidth; el.classList.add(v > from ? "up" : "down"); }
+  const dur = calm ? 0 : Math.min(1000, 350 + Math.abs(v - from) / Math.max(Math.abs(v), 1) * 650);
+  if (!dur || from === v) { shown = v; el.textContent = money(v) + " RON"; return; }
+  const step = t => {
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    shown = from + (v - from) * e;
+    el.textContent = money(shown) + " RON";
+    if (k < 1) raf = requestAnimationFrame(step); else shown = v;
+  };
+  raf = requestAnimationFrame(step);
+}
+function movePill() {
+  const on = document.querySelector("#tabs button.on"), p = $("pill");
+  if (!on) return;
+  p.style.width = on.offsetWidth + "px";
+  p.style.transform = "translateX(" + on.offsetLeft + "px)";
+  if (!p.classList.contains("ready")) requestAnimationFrame(() => p.classList.add("ready"));
+}
+window.addEventListener("resize", movePill);
+
+function runCounts() {
+  if (calm) return;
+  document.querySelectorAll(".cu").forEach((el, i) => {
+    const to = parseFloat(el.dataset.to), f = el.dataset.f, t0 = performance.now() + 150 + i * 70;
+    const fmt = n => f === "s" ? sign(n) : money(n);
+    el.textContent = fmt(0);
+    const step = t => {
+      const k = Math.max(0, Math.min(1, (t - t0) / 900)), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = fmt(to * e);
+      if (k < 1) requestAnimationFrame(step); else el.textContent = fmt(to);
+    };
+    requestAnimationFrame(step);
+  });
+}
+function confetti(x, y) {
+  if (calm) return;
+  const c = document.createElement("canvas");
+  c.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99";
+  const W = c.width = innerWidth, H = c.height = innerHeight;
+  document.body.appendChild(c);
+  const g = c.getContext("2d"), cols = ["#6d5efc", "#ff6b8b", "#12c2a5", "#ffb020", "#3da9fc", "#b45cf0"];
+  const ps = Array.from({ length: 100 }, () => {
+    const a = -Math.PI / 2 + (Math.random() - .5) * 1.8, v = 7 + Math.random() * 10;
+    return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: Math.random() * 6, vr: (Math.random() - .5) * .4, w: 6 + Math.random() * 6, h: 3 + Math.random() * 5, c: cols[Math.random() * cols.length | 0] };
+  });
+  let t = 0;
+  (function f() {
+    g.clearRect(0, 0, W, H); t++;
+    ps.forEach(p => {
+      p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      g.save(); g.translate(p.x, p.y); g.rotate(p.r);
+      g.globalAlpha = Math.max(0, 1 - t / 115); g.fillStyle = p.c;
+      g.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); g.restore();
+    });
+    if (t < 115) requestAnimationFrame(f); else c.remove();
+  })();
+}
+document.addEventListener("pointerdown", e => {
+  const b = e.target.closest("button"); if (!b || calm) return;
+  const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2, n = document.createElement("span");
+  n.className = "rip";
+  n.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
+  b.appendChild(n); setTimeout(() => n.remove(), 650);
+});
+const hero = document.querySelector(".hero");
+document.querySelector("header").addEventListener("pointermove", e => {
+  if (calm) return;
+  const r = hero.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+  hero.style.setProperty("--ry", (x - .5) * 10 + "deg"); hero.style.setProperty("--rx", (.5 - y) * 8 + "deg");
+  hero.style.setProperty("--mx", x * 100 + "%"); hero.style.setProperty("--my", y * 100 + "%");
+});
+document.querySelector("header").addEventListener("pointerleave", () => {
+  hero.style.setProperty("--rx", "0deg"); hero.style.setProperty("--ry", "0deg");
+});
+addEventListener("scroll", () => {
+  const k = Math.min(1, scrollY / 260);
+  hero.style.setProperty("--sc", 1 - k * .06); hero.style.opacity = 1 - k * .55;
+  $("tabs").classList.toggle("stuck", scrollY > 170);
+}, { passive: true });
+$("main").addEventListener("click", e => {
+  const t = e.target.closest(".arc,.lg"); if (!t) return;
+  const al = t.closest(".alloc"), same = al.dataset.sel === t.dataset.s;
+  al.dataset.sel = same ? "" : t.dataset.s;
+  al.classList.toggle("sel", !same);
+  al.querySelectorAll(".arc,.lg").forEach(n => n.classList.toggle("on", !same && n.dataset.s === t.dataset.s));
+  al.querySelector(".dn").textContent = same ? al.dataset.n : t.dataset.p + "%";
+  al.querySelector(".dl").textContent = same ? "poziții" : t.dataset.s;
+});
+
+function render() {
+  const all = positions();
+  const open = all.filter(p => p.q > 0).sort((a, b) => b.c - a.c);
+  let invested = 0, value = 0, missing = 0;
+  for (const p of open) {
+    invested += p.c;
+    const px = parseFloat(state.px[p.s]);
+    if (px > 0) value += p.q * px; else { value += p.c; missing++; }
+  }
+  const realized = all.reduce((a, p) => a + p.r, 0);
+  const divs = state.dv.reduce((a, x) => a + x.a, 0);
+  countTo(value);
+  $("sum").innerHTML =
+    `<span>Investit ${money(invested)}</span>` +
+    `<span class="${cls(value - invested) === "neg" ? "neg" : "pos"}">Profit latent ${sign(value - invested)}</span>` +
+    `<span>Realizat ${sign(realized)}</span><span>Dividende ${money(divs)}</span>`;
+
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.t === tab));
+  const doAnim = animateNext;
+  $("main").className = doAnim ? "anim" : "";
+  $("main").dataset.dir = dirNext; dirNext = 0;
+  animateNext = false;
+  movePill();
+  $("main").innerHTML = tab === "pos" ? viewPos(open, missing) : tab === "tr" ? viewTr() : viewDv();
+  if (doAnim) runCounts();
+  if (!pxInit && state.tr.length) { pxInit = true; refreshPrices(); }
+}
+
+const PAL = ["#6d5efc", "#ff6b8b", "#12c2a5", "#ffb020", "#3da9fc", "#b45cf0", "#ff8a3d", "#2bb673"];
+function col(sym) {
+  const syms = [...new Set(state.tr.map(x => x.s))].sort();
+  return PAL[Math.max(0, syms.indexOf(sym)) % PAL.length];
+}
+function donut(open) {
+  const rows = open.map(p => { const px = parseFloat(state.px[p.s]); return { s: p.s, v: px > 0 ? p.q * px : p.c }; })
+    .sort((a, b) => b.v - a.v);
+  const tot = rows.reduce((a, r) => a + r.v, 0);
+  if (!(tot > 0)) return "";
+  const C = 2 * Math.PI * 48, gap = rows.length > 1 ? 3 : 0;
+  let cum = 0;
+  const pc = r => (r.v / tot * 100).toLocaleString("ro-RO", { maximumFractionDigits: 1 });
+  const arcs = rows.map((r, i) => {
+    const len = r.v / tot * C;
+    const a = `<circle class="arc" data-s="${esc(r.s)}" data-p="${pc(r)}" style="--C:${C.toFixed(1)};--i:${i}" cx="60" cy="60" r="48" fill="none" stroke="${col(r.s)}" stroke-width="16" stroke-dasharray="${Math.max(len - gap, 0.5)} ${C}" stroke-dashoffset="${-cum}" transform="rotate(-90 60 60)"/>`;
+    cum += len; return a;
+  }).join("");
+  const leg = rows.map((r, i) => `<div class="lg" data-s="${esc(r.s)}" data-p="${pc(r)}" style="--i:${i}"><i class="dot" style="background:${col(r.s)}"></i><span>${esc(r.s)}</span><b>${money(r.v / tot * 100)}%</b></div>`).join("");
+  return `<div class="alloc" data-n="${rows.length}"><svg viewBox="0 0 120 120" role="img" aria-label="Structura portofoliului">${arcs}<text x="60" y="60" text-anchor="middle" class="dn">${rows.length}</text><text x="60" y="75" text-anchor="middle" class="dl">poziții</text></svg><div class="legend">${leg}</div></div>`;
+}
+
+function viewPos(open, missing) {
+  if (!open.length) return `<div class="empty">Nicio poziție deschisă.<br>Apasă + ca să adaugi prima cumpărare.<br><br><button class="impbtn lnk">Importă din foaia Bani TradeVille</button></div>`;
+  const totV = open.reduce((a, p) => { const x = parseFloat(state.px[p.s]); return a + (x > 0 ? p.q * x : p.c); }, 0);
+  let h = donut(open) + open.map(p => {
+    const avg = p.c / p.q, px = parseFloat(state.px[p.s]);
+    const has = px > 0, val = has ? p.q * px : 0, pl = has ? val - p.c : 0, pct = has ? pl / p.c * 100 : 0;
+    const share = ((has ? val : p.c) / totV * 100).toFixed(1);
+    return `<div class="card"><div class="pr">
+      <div class="av" style="background:${col(p.s)}">${esc(p.s.slice(0, 3))}</div>
+      <div><div class="sym">${esc(p.s)}</div><div class="sub">${qty(p.q)} acțiuni · medie ${money(avg)}</div></div>
+      <div class="v"><span class="cu" data-to="${has ? val : p.c}" data-f="m">${money(has ? val : p.c)}</span><div class="sub ${has ? cls(pl) : ""}">${has ? `<span class="cu" data-to="${pl}" data-f="s">${sign(pl)}</span>` + " (" + (pct > 0 ? "+" : "") + money(pct) + "%)" : "investit"}</div></div>
+      </div>
+      <div class="bar"><i style="width:${share}%;background:${col(p.s)}"></i></div>
+      <div class="px"><label for="px-${esc(p.s)}">Preț curent</label>
+      <input id="px-${esc(p.s)}" data-s="${esc(p.s)}" type="number" inputmode="decimal" step="any" value="${has ? px : ""}" placeholder="RON"></div></div>`;
+  }).join("");
+  if (missing) h += `<div class="sub" style="padding:4px 8px">Pentru ${missing} poziții fără preț curent, valoarea este egală cu suma investită.</div>`;
+  return h;
+}
+
+function groupByMonth(items) {
+  const g = {};
+  for (const x of items) (g[x.d.slice(0, 7)] = g[x.d.slice(0, 7)] || []).push(x);
+  return Object.keys(g).sort().reverse().map(k => [k, g[k].sort((a, b) => b.d.localeCompare(a.d))]);
+}
+
+function viewTr() {
+  if (!state.tr.length) return `<div class="empty">Nicio tranzacție încă.</div>`;
+  return groupByMonth(state.tr).map(([ym, rows]) => {
+    const flow = rows.reduce((a, x) => a + (x.t === "B" ? -1 : 1) * x.q * x.p, 0);
+    return `<div class="month">${monthName(ym)}<span>${rows.length} tranzacții</span></div><div class="card">` +
+      rows.map(x => `<div class="tr"><div class="day">${x.d.slice(8)}</div>
+        <div><i class="dot" style="background:${col(x.s)}"></i><b>${esc(x.s)}</b><span class="tag ${x.t}">${x.t === "B" ? "Cumpărare" : "Vânzare"}</span>
+        <div class="sub">${qty(x.q)} × ${money(x.p)}${x.f ? " · comision " + money(x.f) : ""}</div></div>
+        <div class="v">${money(x.q * x.p)}</div>
+        <button class="del" data-del="tr:${x.id}" aria-label="Șterge">×</button></div>`).join("") + `</div>`;
+  }).join("");
+}
+
+function viewDv() {
+  if (!state.dv.length) return `<div class="empty">Niciun dividend înregistrat.</div>`;
+  const years = {};
+  for (const x of state.dv) years[x.d.slice(0, 4)] = (years[x.d.slice(0, 4)] || 0) + x.a;
+  const head = Object.keys(years).sort().reverse().map(y => `${y}: ${money(years[y])}`).join(" · ");
+  return `<div class="sub" style="padding:8px 4px">Total pe an: ${head}</div>` +
+    groupByMonth(state.dv).map(([ym, rows]) =>
+      `<div class="month">${monthName(ym)}<span>${money(rows.reduce((a, x) => a + x.a, 0))}</span></div><div class="card">` +
+      rows.map(x => `<div class="tr"><div class="day">${x.d.slice(8)}</div>
+        <div><i class="dot" style="background:${col(x.s)}"></i><b>${esc(x.s)}</b><span class="tag D">Dividend</span></div>
+        <div class="v">${money(x.a)}</div>
+        <button class="del" data-del="dv:${x.id}" aria-label="Șterge">×</button></div>`).join("") + `</div>`).join("");
+}
+
+// interacțiuni
+$("tabs").onclick = e => { const t = e.target.dataset.t; if (t) { const o = { pos: 0, tr: 1, dv: 2 }; dirNext = o[t] > o[tab] ? 1 : -1; tab = t; animateNext = true; render(); } };
+$("main").onchange = e => {
+  const s = e.target.dataset.s;
+  if (s) { const v = parseFloat(e.target.value); if (v > 0) state.px[s] = v; else delete state.px[s]; save(); const f = document.getElementById("px-" + s); if (f) f.classList.add("okf"); }
+};
+$("main").onclick = e => {
+  const d = e.target.dataset.del; if (!d) return;
+  const [k, id] = d.split(":");
+  if (confirm("Ștergi această înregistrare?")) {
+    const row = e.target.closest(".tr"); if (row) row.classList.add("out");
+    setTimeout(() => { state[k] = state[k].filter(x => x.id !== id); save(); }, calm ? 0 : 260);
+  }
+};
+function setKind(k) {
+  kind = k;
+  document.querySelectorAll("#kind button").forEach(b => b.classList.toggle("on", b.dataset.k === k));
+  $("trf").hidden = $("fee").hidden = k === "D";
+  $("dvf").hidden = k !== "D";
+}
+$("kind").onclick = e => { if (e.target.dataset.k) setKind(e.target.dataset.k); };
+$("add").onclick = () => {
+  ["fs", "fq", "fp", "ff", "fa"].forEach(i => $(i).value = "");
+  $("fd").value = new Date().toISOString().slice(0, 10);
+  setKind(tab === "dv" ? "D" : "B");
+  $("dlg").showModal();
+};
+$("cancel").onclick = () => $("dlg").close();
+$("save").onclick = () => {
+  const d = $("fd").value, s = $("fs").value.trim().toUpperCase();
+  if (!d || !s) return alert("Completează data și simbolul.");
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  if (kind === "D") {
+    const a = parseFloat($("fa").value);
+    if (!(a > 0)) return alert("Completează suma încasată.");
+    state.dv.push({ id, d, s, a });
+  } else {
+    const q = parseFloat($("fq").value), p = parseFloat($("fp").value), f = parseFloat($("ff").value) || 0;
+    if (!(q > 0) || !(p > 0)) return alert("Completează numărul de acțiuni și prețul.");
+    state.tr.push({ id, d, s, t: kind, q, p, f });
+  }
+  $("dlg").close(); save(); confetti(innerWidth - 50, innerHeight - 50);
+};
+// ---- prețuri BVB + asistent ----
+let pxInit = false, lastAdded = [];
+function setLive(text, ok) { const b = $("live"); b.textContent = text; b.classList.toggle("off", !ok); }
+async function refreshPrices() {
+  if (!WORKER_URL) { setLive("Prețuri introduse manual · adaugă WORKER_URL pentru BVB", false); return 0; }
+  const syms = [...new Set(positions().filter(p => p.q > 0).map(p => p.s))];
+  if (!syms.length) return 0;
+  try {
+    setLive("Se actualizează prețurile…", true);
+    const r = await fetch(WORKER_URL.replace(/\/$/, "") + "/prices?s=" + syms.join(","));
+    const j = await r.json();
+    if (!j.prices) throw new Error("fără prețuri");
+    let n = 0, ch = false;
+    for (const s of syms) if (j.prices[s] > 0) { n++; if (state.px[s] !== j.prices[s]) { state.px[s] = j.prices[s]; ch = true; } }
+    if (ch) save();
+    const hm = ((j.updated || "").split(" ")[1] || "").slice(0, 5);
+    setLive("BVB · " + n + "/" + syms.length + " simboluri" + (hm ? " · " + hm : "") + " · atinge pentru reîmprospătare", n > 0);
+    return n;
+  } catch (e) { setLive("Nu am putut lua prețurile de la BVB · atinge ca să reîncerci", false); return 0; }
+}
+
+const norm = t => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const iso = (off = 0) => { const d = new Date(); d.setDate(d.getDate() + off); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+const toNum = x => parseFloat(String(x).replace(",", "."));
+const known = () => [...new Set(state.tr.map(x => x.s))];
+function localParse(text) {
+  const t = norm(text), actions = [];
+  let d = iso();
+  if (/\bieri\b/.test(t)) d = iso(-1);
+  const m = t.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/);
+  if (m) d = m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0");
+  const re = /(cumpar\w*|vand\w*)\s+(\d+(?:[.,]\d+)?)\s+(?:actiuni\s+|unitati\s+)?([a-z][a-z0-9]{1,9})\s+(?:la|@|cu|pret)\s*(?:pretul\s*)?(\d+(?:[.,]\d+)?)/g;
+  for (const x of t.matchAll(re)) actions.push({ type: x[1].startsWith("cump") ? "buy" : "sell", d, s: x[3].toUpperCase(), q: toNum(x[2]), p: toNum(x[4]) });
+  if (/dividend/.test(t)) {
+    const s = known().find(k => t.includes(k.toLowerCase()));
+    const nums = [...t.replace(/\d{1,2}[.\/-]\d{1,2}[.\/-]\d{4}/g, "").matchAll(/\d+(?:[.,]\d+)?/g)];
+    if (s && nums.length) actions.push({ type: "dividend", d, s, a: toNum(nums[nums.length - 1][0]) });
+  }
+  if (/(actualiz|reimprosp|refresh|update)/.test(t) && /(pret|cotati|bvb|bursa)/.test(t)) actions.push({ type: "refresh" });
+  return { actions, reply: actions.length ? "" : "Nu am înțeles. Încearcă: „am cumpărat 5 EVER la 3,45” sau „actualizează prețurile”." };
+}
+async function ask(text) {
+  if (WORKER_URL) {
+    let k = localStorage.getItem("bursaKey");
+    if (k === null) { k = prompt("Cheia aplicației (APP_KEY din Worker). Lasă gol ca să folosești modul local.") || "-"; localStorage.setItem("bursaKey", k); }
+    if (k !== "-") {
+      try {
+        const r = await fetch(WORKER_URL.replace(/\/$/, "") + "/agent", { method: "POST", headers: { "content-type": "application/json", "x-app-key": k }, body: JSON.stringify({ text, today: iso(), symbols: known() }) });
+        if (r.status === 401) localStorage.removeItem("bursaKey");
+        else { const j = await r.json(); if (Array.isArray(j.actions)) return j; }
+      } catch (e) {}
+    }
+  }
+  return localParse(text);
+}
+function say(text, who) { const b = document.createElement("div"); b.className = "b " + who; b.textContent = text; $("log").appendChild(b); $("log").scrollTop = 1e6; return b; }
+function undoBtn() {
+  const b = document.createElement("button"); b.className = "lnk"; b.textContent = "Anulează ultima adăugare";
+  b.onclick = () => { lastAdded.forEach(([k, id]) => { state[k] = state[k].filter(x => x.id !== id); }); lastAdded = []; save(); b.remove(); say("Am anulat.", "ai"); };
+  $("log").appendChild(b); $("log").scrollTop = 1e6;
+}
+async function runActions(j) {
+  const msgs = [], added = []; let refresh = false;
+  for (const a of j.actions || []) {
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6), s = String(a.s || "").toUpperCase();
+    if (a.type === "buy" || a.type === "sell") {
+      const q = +a.q, p = +a.p;
+      if (!s || !(q > 0) || !(p > 0)) { msgs.push("Mi-au lipsit simbolul, cantitatea sau prețul pentru o tranzacție."); continue; }
+      if (a.type === "sell") {
+        const held = (positions().find(x => x.s === s) || { q: 0 }).q;
+        if (q > held + 1e-9) { msgs.push("Ai doar " + qty(held) + " " + s + ", deci nu am înregistrat vânzarea de " + qty(q) + "."); continue; }
+      }
+      state.tr.push({ id, d: a.d || iso(), s, t: a.type === "buy" ? "B" : "V", q, p, f: +a.f || 0 });
+      added.push(["tr", id]);
+      msgs.push((a.type === "buy" ? "Cumpărat " : "Vândut ") + qty(q) + " " + s + " la " + money(p) + " RON (" + (a.d || iso()) + ")");
+    } else if (a.type === "dividend") {
+      const v = +a.a;
+      if (!s || !(v > 0)) { msgs.push("Mi-au lipsit simbolul sau suma dividendului."); continue; }
+      state.dv.push({ id, d: a.d || iso(), s, a: v }); added.push(["dv", id]);
+      msgs.push("Dividend " + s + ": " + money(v) + " RON");
+    } else if (a.type === "refresh") refresh = true;
+  }
+  if (j.reply) msgs.unshift(j.reply);
+  if (msgs.length) say(msgs.join("\n"), "ai");
+  if (added.length) { lastAdded = added; animateNext = true; save(); confetti(innerWidth / 2, innerHeight * .6); undoBtn(); refresh = true; }
+  if (refresh) {
+    const n = await refreshPrices();
+    say(n ? "Prețuri actualizate de pe BVB (" + n + " simboluri)." : "Nu am putut actualiza prețurile de pe BVB.", "ai");
+  }
+}
+async function send() {
+  const t = $("msg").value.trim(); if (!t) return;
+  $("msg").value = ""; say(t, "me");
+  const th = say("…", "ai"), j = await ask(t);
+  th.remove(); await runActions(j);
+}
+$("askb").onclick = () => {
+  $("mode").textContent = WORKER_URL ? "Asistent AI prin Worker · dacă nu răspunde, înțeleg fraze simple" : "Mod local · înțeleg fraze simple";
+  $("ai").showModal();
+  if (!$("log").children.length) say("Spune-mi ce ai cumpărat sau vândut, de exemplu „am cumpărat 5 EVER la 3,45”. Poți cere și „actualizează prețurile”.", "ai");
+  setTimeout(() => $("msg").focus(), 350);
+};
+$("aiclose").onclick = () => $("ai").close();
+$("go").onclick = send;
+$("msg").onkeydown = e => { if (e.key === "Enter") send(); };
+$("ai").querySelectorAll(".chips button").forEach(b => b.onclick = () => { $("msg").value = b.dataset.q; send(); });
+$("live").onclick = () => refreshPrices();
+setInterval(() => { if (!document.hidden) refreshPrices(); }, 5 * 60 * 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshPrices(); });
+setLive(WORKER_URL ? "Se pregătesc prețurile BVB…" : "Prețuri introduse manual · adaugă WORKER_URL pentru BVB", !!WORKER_URL);
+
+const SEED = {"tr":[{"d":"2024-06-10","s":"EVER","t":"B","q":73.0,"p":1.366164,"f":0},{"d":"2025-06-10","s":"DIGI","t":"B","q":3.0,"p":25.01,"f":0},{"d":"2025-08-06","s":"H2O","t":"B","q":1.0,"p":124.2,"f":0},{"d":"2025-08-07","s":"TEL","t":"B","q":1.0,"p":62.42,"f":0},{"d":"2025-08-07","s":"TLV","t":"B","q":3.0,"p":28.663333,"f":0},{"d":"2025-10-27","s":"SNG","t":"B","q":11.0,"p":9.835455,"f":0},{"d":"2026-02-26","s":"TLV","t":"B","q":6.0,"p":36.01,"f":0},{"d":"2026-02-26","s":"EVER","t":"B","q":5.0,"p":3.34,"f":0},{"d":"2026-05-22","s":"TVBETETF","t":"B","q":3.0,"p":53.02,"f":0},{"d":"2026-05-22","s":"EVER","t":"B","q":11.0,"p":3.539091,"f":0},{"d":"2026-05-26","s":"EVER","t":"B","q":24.0,"p":3.4925,"f":0},{"d":"2026-06-05","s":"TVBETETF","t":"B","q":3.0,"p":51.323333,"f":0},{"d":"2026-06-10","s":"EVER","t":"B","q":15.0,"p":3.26,"f":0},{"d":"2026-06-25","s":"EVER","t":"B","q":3.0,"p":3.84,"f":0},{"d":"2026-06-30","s":"TVBETETF","t":"B","q":4.0,"p":56.0,"f":0},{"d":"2026-06-30","s":"EVER","t":"B","q":1.0,"p":4.89,"f":0},{"d":"2026-07-22","s":"TVBETETF","t":"B","q":4.0,"p":63.06,"f":0},{"d":"2026-08-06","s":"TVBETETF","t":"B","q":4.0,"p":61.81,"f":0},{"d":"2026-08-10","s":"TRANSI","t":"B","q":10.0,"p":1.004,"f":0},{"d":"2026-08-13","s":"EVER","t":"B","q":6.0,"p":4.045,"f":0},{"d":"2026-08-13","s":"TVBETETF","t":"B","q":6.0,"p":63.018333,"f":0},{"d":"2026-08-17","s":"TVBETETF","t":"B","q":3.0,"p":63.25,"f":0},{"d":"2026-08-17","s":"EVER","t":"B","q":3.0,"p":4.61,"f":0},{"d":"2026-08-19","s":"GIBXTETF","t":"B","q":8.0,"p":10.92875,"f":0},{"d":"2026-08-19","s":"EVER","t":"B","q":2.0,"p":5.1,"f":0},{"d":"2026-08-19","s":"EVER","t":"B","q":2.0,"p":5.1,"f":0},{"d":"2026-09-07","s":"TVBETETF","t":"B","q":5.0,"p":59.808,"f":0},{"d":"2026-09-07","s":"TVBETETF","t":"B","q":3.0,"p":60.46,"f":0},{"d":"2026-09-07","s":"EVER","t":"B","q":6.0,"p":4.056667,"f":0},{"d":"2026-09-16","s":"EVER","t":"B","q":12.0,"p":3.695833,"f":0},{"d":"2026-09-16","s":"TVBETETF","t":"B","q":3.0,"p":53.96,"f":0},{"d":"2026-10-07","s":"TVBETETF","t":"B","q":3.0,"p":59.5,"f":0},{"d":"2026-10-07","s":"TRANSI","t":"B","q":33.0,"p":0.793333,"f":0},{"d":"2026-10-09","s":"EVER","t":"B","q":11.0,"p":3.731818,"f":0},{"d":"2026-10-09","s":"TVBETETF","t":"B","q":1.0,"p":60.96,"f":0}],"px":{"EVER":3.39,"DIGI":59.5,"H2O":196.2,"TEL":98.8,"TLV":36.1,"SNG":18.7,"TVBETETF":59.7,"TRANSI":0.686,"GIBXTETF":9.58}};
+function importSeed() {
+  if (state.tr.length && !confirm("Există deja tranzacții. Dacă importi din nou, ele se dublează. Continui?")) return;
+  SEED.tr.forEach((x, i) => state.tr.push(Object.assign({ id: Date.now().toString(36) + i }, x)));
+  Object.assign(state.px, SEED.px);
+  animateNext = true;
+  save(); confetti(innerWidth / 2, innerHeight * .45);
+}
+document.body.addEventListener("click", e => { if (e.target.closest(".impbtn")) importSeed(); });
+load();
+</script>
+</body>
+</html>
