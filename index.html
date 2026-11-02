@@ -160,6 +160,30 @@ dialog[open]>*:nth-child(1){animation-delay:0.09s}dialog[open]>*:nth-child(2){an
 .chips button{border:0;background:var(--fill);color:var(--ink);border-radius:99px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
 .send{display:flex;gap:8px}
 .send button{flex:none;width:52px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;font-size:20px;cursor:pointer}
+.card.hit{box-shadow:0 0 0 2px var(--gain),0 12px 28px rgba(15,157,118,.22)}
+.card.hit .tag{animation:blink 1.4s infinite}
+
+/* evoluție + simulator */
+@keyframes dash{from{stroke-dashoffset:1}}
+@keyframes sy{from{transform:scaleY(0)}}
+nav button{font-size:13px;padding:10px 2px}
+.ln{stroke-dasharray:1}
+.anim .ln{animation:dash 1.5s cubic-bezier(.3,.7,.2,1) .15s both}
+.anim .fadeln{animation:fade 1s .7s both}
+.br{transform-box:fill-box;transform-origin:bottom}
+.anim .br{animation:sy .7s cubic-bezier(.3,.7,.2,1) both;animation-delay:calc(var(--i)*.025s)}
+svg.ch{width:100%;height:auto;display:block;touch-action:pan-y;cursor:crosshair}
+.ax{font-size:9px;fill:var(--mute)}
+.ro{font-size:13px;margin:6px 2px 10px;min-height:40px;line-height:1.35}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.stats .t{background:var(--card);border-radius:18px;padding:12px 10px}
+.stats .t>span{display:block;font-size:11px;color:var(--mute);margin-bottom:2px}
+.stats .t b{font-size:14px;font-variant-numeric:tabular-nums}
+.lgd{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--mute)}
+.lgd i{display:inline-block;width:9px;height:9px;border-radius:5px;margin-right:5px}
+input[type=range]{padding:0;background:none;accent-color:var(--g2);height:28px}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;margin-top:4px}
+.chk input{width:auto}
 </style>
 </head>
 <body>
@@ -175,7 +199,8 @@ dialog[open]>*:nth-child(1){animation-delay:0.09s}dialog[open]>*:nth-child(2){an
   <span id="pill"></span>
   <button data-t="pos" class="on">Poziții</button>
   <button data-t="tr">Tranzacții</button>
-  <button data-t="dv">Dividende</button>
+  <button data-t="ev">Evoluție</button>
+  <button data-t="sim">Simulator</button>
 </nav>
 <main id="main"></main>
 <div id="st"></div>
@@ -196,8 +221,7 @@ dialog[open]>*:nth-child(1){animation-delay:0.09s}dialog[open]>*:nth-child(2){an
   <div class="seg" id="kind">
     <button data-k="B" class="on" type="button">Cumpărare</button>
     <button data-k="V" type="button">Vânzare</button>
-    <button data-k="D" type="button">Dividend</button>
-  </div>
+      </div>
   <div class="two">
     <div class="f"><label for="fd">Data</label><input id="fd" type="date"></div>
     <div class="f"><label for="fs">Simbol</label><input id="fs" autocapitalize="characters" placeholder="ex. SNP"></div>
@@ -207,7 +231,6 @@ dialog[open]>*:nth-child(1){animation-delay:0.09s}dialog[open]>*:nth-child(2){an
     <div class="f"><label for="fp">Preț (RON)</label><input id="fp" type="number" inputmode="decimal" step="any"></div>
   </div>
   <div class="f" id="fee"><label for="ff">Comision (RON)</label><input id="ff" type="number" inputmode="decimal" step="any" placeholder="0"></div>
-  <div class="f" id="dvf" hidden><label for="fa">Sumă încasată (RON, net)</label><input id="fa" type="number" inputmode="decimal" step="any"></div>
   <div class="acts"><button class="no" id="cancel" type="button">Renunță</button><button class="ok" id="save" type="button">Salvează</button></div>
 </dialog>
 
@@ -221,14 +244,14 @@ const FIREBASE_CONFIG = {
   projectId: "bursa2027-5f1ad",
   storageBucket: "bursa2027-5f1ad.firebasestorage.app",
   messagingSenderId: "680058097125",
-  appId: "1:680058097125:web:46b5e05a40ff7fd846330c"
+  appId: "1:680058097125:web:46b5e05a40ff7fd846330c",
 };
 
 // Adresa Worker-ului Cloudflare (vezi worker.js), ex. "https://bursa.contul-tau.workers.dev"
-const WORKER_URL = "https://bursa.serbanlaurentiuiulian.workers.dev/";
+const WORKER_URL = "https://bursa.serbanlaurentiuiulian.workers.dev";
 
 const useFb = !!FIREBASE_CONFIG.projectId && typeof firebase !== "undefined";
-let state = { tr: [], dv: [], px: {} };
+let state = { tr: [], dv: [], wl: [], px: {} };
 let ref = null, tab = "pos", kind = "B";
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -246,7 +269,7 @@ function load() {
     ref = firebase.firestore().collection("bursa").doc("date");
     $("main").innerHTML = '<div class="sk"></div><div class="sk"></div><div class="sk"></div>';
     ref.onSnapshot(s => {
-      if (s.exists) state = Object.assign({ tr: [], dv: [], px: {} }, s.data());
+      if (s.exists) state = Object.assign({ tr: [], dv: [], wl: [], px: {} }, s.data());
       setStatus("Sincronizat între telefon și PC");
       render();
     }, () => setStatus("Eroare de sincronizare"));
@@ -387,7 +410,7 @@ function render() {
   $("sum").innerHTML =
     `<span>Investit ${money(invested)}</span>` +
     `<span class="${cls(value - invested) === "neg" ? "neg" : "pos"}">Profit latent ${sign(value - invested)}</span>` +
-    `<span>Realizat ${sign(realized)}</span><span>Dividende ${money(divs)}</span>`;
+    `<span>Realizat ${sign(realized)}</span>`;
 
   document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.t === tab));
   const doAnim = animateNext;
@@ -395,9 +418,10 @@ function render() {
   $("main").dataset.dir = dirNext; dirNext = 0;
   animateNext = false;
   movePill();
-  $("main").innerHTML = tab === "pos" ? viewPos(open, missing) : tab === "tr" ? viewTr() : viewDv();
+  $("main").innerHTML = tab === "pos" ? viewPos(open, missing) : tab === "tr" ? viewTr() : tab === "ev" ? viewEv() : viewSim();
+  if (tab === "sim") updateSim(false);
   if (doAnim) runCounts();
-  if (!pxInit && state.tr.length) { pxInit = true; refreshPrices(); }
+  if (!pxInit && (state.tr.length || state.wl.length)) { pxInit = true; refreshPrices(); }
 }
 
 const PAL = ["#6d5efc", "#ff6b8b", "#12c2a5", "#ffb020", "#3da9fc", "#b45cf0", "#ff8a3d", "#2bb673"];
@@ -461,22 +485,124 @@ function viewTr() {
   }).join("");
 }
 
-function viewDv() {
-  if (!state.dv.length) return `<div class="empty">Niciun dividend înregistrat.</div>`;
-  const years = {};
-  for (const x of state.dv) years[x.d.slice(0, 4)] = (years[x.d.slice(0, 4)] || 0) + x.a;
-  const head = Object.keys(years).sort().reverse().map(y => `${y}: ${money(years[y])}`).join(" · ");
-  return `<div class="sub" style="padding:8px 4px">Total pe an: ${head}</div>` +
-    groupByMonth(state.dv).map(([ym, rows]) =>
-      `<div class="month">${monthName(ym)}<span>${money(rows.reduce((a, x) => a + x.a, 0))}</span></div><div class="card">` +
-      rows.map(x => `<div class="tr"><div class="day">${x.d.slice(8)}</div>
-        <div><i class="dot" style="background:${col(x.s)}"></i><b>${esc(x.s)}</b><span class="tag D">Dividend</span></div>
-        <div class="v">${money(x.a)}</div>
-        <button class="del" data-del="dv:${x.id}" aria-label="Șterge">×</button></div>`).join("") + `</div>`).join("");
+const MS = ["Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const CH = {};
+let simP = { m: 500, y: 5, r: 8, s: 1 };
+const short = n => Math.abs(n) >= 1000 ? (n / 1000).toLocaleString("ro-RO", { maximumFractionDigits: 1 }) + "k" : String(Math.round(n));
+
+function draw(c) {
+  const W = 340, H = 190, L = 40, R = 8, T = 10, B = 22, w = W - L - R, h = H - T - B;
+  const max = Math.max(1, ...(c.bars || []), ...c.lines.flatMap(l => l.v)) * 1.1;
+  const X = i => L + (c.n > 1 ? i / (c.n - 1) * w : w / 2), Y = v => T + h - Math.max(0, v) / max * h;
+  c.geo = { X, Y, L, W, w };
+  let g = "";
+  for (let k = 0; k <= 3; k++) {
+    const v = max / 1.1 * k / 3;
+    g += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${Y(v) + 3}" text-anchor="end" class="ax">${short(v)}</text>`;
+  }
+  const step = c.step || Math.max(1, Math.ceil(c.n / 6));
+  for (let i = 0; i < c.n; i += step) g += `<text x="${X(i)}" y="${H - 6}" text-anchor="middle" class="ax">${esc(c.xl(i))}</text>`;
+  const bw = Math.max(2, Math.min(14, w / c.n * .6));
+  const bars = (c.bars || []).map((v, i) => `<rect class="br" style="--i:${i}" x="${X(i) - bw / 2}" y="${Y(v)}" width="${bw}" height="${Math.max(0, T + h - Y(v))}" rx="2" fill="var(--g3)" opacity=".5"/>`).join("");
+  const lines = c.lines.map(l => {
+    const d = l.v.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
+    const area = l.fill ? `<path class="fadeln" d="${d} L${X(c.n - 1)} ${T + h} L${X(0)} ${T + h} Z" fill="url(#g-${c.id})"/>` : "";
+    return area + `<path class="${l.dash ? "fadeln" : "ln"}" pathLength="1" d="${d}" fill="none" stroke="${l.c}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"${l.dash ? ' stroke-dasharray="5 4"' : ""}/>`;
+  }).join("");
+  return `<svg class="ch" data-id="${c.id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Grafic"><defs><linearGradient id="g-${c.id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--g2)" stop-opacity=".35"/><stop offset="1" stop-color="var(--g2)" stop-opacity="0"/></linearGradient></defs>${g}${bars}${lines}<line class="mk" x1="0" x2="0" y1="${T}" y2="${T + h}" stroke="var(--ink)" stroke-opacity=".35" visibility="hidden"/><g class="dots"></g></svg>`;
+}
+function scrub(e) {
+  const svg = e.target.closest && e.target.closest("svg.ch"); if (!svg) return;
+  const c = CH[svg.dataset.id]; if (!c || !c.geo) return;
+  const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * c.geo.W;
+  const i = Math.max(0, Math.min(c.n - 1, Math.round((x - c.geo.L) / c.geo.w * (c.n - 1))));
+  const mk = svg.querySelector(".mk");
+  mk.setAttribute("x1", c.geo.X(i)); mk.setAttribute("x2", c.geo.X(i)); mk.setAttribute("visibility", "visible");
+  svg.querySelector(".dots").innerHTML = c.lines.map(l => `<circle cx="${c.geo.X(i)}" cy="${c.geo.Y(l.v[i])}" r="4" fill="${l.c}" stroke="var(--card)" stroke-width="2"/>`).join("");
+  const ro = $("ro-" + c.id); if (ro) ro.innerHTML = c.info(i);
+}
+["pointermove", "pointerdown"].forEach(ev => $("main").addEventListener(ev, scrub));
+$("main").addEventListener("input", e => { if (e.target.classList.contains("simin")) updateSim(true); });
+
+function evo() {
+  const t = [...state.tr].sort((a, b) => a.d.localeCompare(b.d));
+  if (!t.length) return null;
+  const now = iso().slice(0, 7);
+  let [y, m] = t[0].d.slice(0, 7).split("-").map(Number);
+  const [ny, nm] = now.split("-").map(Number), months = [];
+  while (y < ny || (y === ny && m <= nm)) { months.push(y + "-" + String(m).padStart(2, "0")); if (++m > 12) { m = 1; y++; } }
+  const q = {}, last = {}, out = []; let net = 0, i = 0;
+  for (const ym of months) {
+    let contrib = 0;
+    while (i < t.length && t[i].d.slice(0, 7) <= ym) {
+      const x = t[i++], amt = x.t === "B" ? x.q * x.p + x.f : -(x.q * x.p - x.f);
+      net += amt; contrib += amt; q[x.s] = (q[x.s] || 0) + (x.t === "B" ? x.q : -x.q); last[x.s] = x.p;
+    }
+    let val = 0;
+    for (const s in q) if (q[s] > 1e-9) { const cur = parseFloat(state.px[s]); val += q[s] * (ym === now && cur > 0 ? cur : last[s]); }
+    out.push({ ym, contrib, net, val });
+  }
+  return out;
+}
+function viewEv() {
+  const d = evo();
+  if (!d) return `<div class="empty">Nu ai tranzacții încă, deci nu am ce să desenez.</div>`;
+  const e = d[d.length - 1], profit = e.val - e.net;
+  const cfg = {
+    id: "ev", n: d.length, bars: d.map(x => Math.max(0, x.contrib)),
+    lines: [{ v: d.map(x => x.net), c: "var(--mute)", dash: true }, { v: d.map(x => x.val), c: "var(--g2)", fill: true }],
+    xl: i => MS[+d[i].ym.slice(5) - 1] + " " + d[i].ym.slice(2, 4),
+    info: i => `<b>${monthName(d[i].ym)}</b><br>Investit net ${money(d[i].net)} · valoare estimată ${money(d[i].val)} · în lună ${sign(d[i].contrib)}`
+  };
+  CH.ev = cfg;
+  const tile = (lbl, v, f, c) => `<div class="t"><span>${lbl}</span><b class="${c || ""}"><span class="cu" data-to="${v}" data-f="${f}">${f === "s" ? sign(v) : money(v)}</span></b></div>`;
+  return `<div class="stats">${tile("Investit net", e.net, "m")}${tile("Valoare acum", e.val, "m")}${tile("Profit", profit, "s", cls(profit))}</div>
+    <div class="card"><div class="lgd"><span><i style="background:var(--mute)"></i>Investit net</span><span><i style="background:var(--g2)"></i>Valoare estimată</span><span><i style="background:var(--g3)"></i>Investit în lună</span></div>
+    <div class="ro" id="ro-ev">${cfg.info(d.length - 1)}</div>${draw(cfg)}</div>
+    <div class="sub" style="padding:4px 8px">Atinge sau trage degetul pe grafic ca să vezi fiecare lună. Valorile din trecut sunt estimate după ultimul preț la care ai tranzacționat fiecare simbol, iar ultima lună folosește prețul curent.</div>`;
 }
 
+function curValue() {
+  return positions().filter(p => p.q > 0).reduce((a, p) => { const x = parseFloat(state.px[p.s]); return a + (x > 0 ? p.q * x : p.c); }, 0);
+}
+function viewSim() {
+  return `<div class="card">
+    <div class="f"><label for="sm">Cât investești lunar (RON)</label><input class="simin" id="sm" type="number" inputmode="decimal" min="0" step="50" value="${simP.m}"></div>
+    <div class="f"><label for="sy">Pe câți ani: <b id="syv">${simP.y}</b></label><input class="simin" id="sy" type="range" min="1" max="30" value="${simP.y}"></div>
+    <div class="f"><label for="sr">Randament anual estimat: <b id="srv">${simP.r}%</b></label><input class="simin" id="sr" type="range" min="-5" max="25" step="0.5" value="${simP.r}"></div>
+    <label class="chk"><input class="simin" id="ss" type="checkbox" ${simP.s ? "checked" : ""}> Pornesc de la valoarea portofoliului de acum</label>
+  </div><div id="simout"></div>`;
+}
+function updateSim(interactive) {
+  if (!$("sm")) return;
+  simP.m = Math.max(0, parseFloat($("sm").value) || 0); simP.y = +$("sy").value; simP.r = +$("sr").value; simP.s = $("ss").checked ? 1 : 0;
+  $("syv").textContent = simP.y; $("srv").textContent = simP.r.toLocaleString("ro-RO") + "%";
+  const n = simP.y * 12, v0 = simP.s ? curValue() : 0, put = simP.m * n;
+  const sc = [[simP.r - 5, "var(--loss)", "Pesimist"], [simP.r, "var(--g2)", "De bază"], [simP.r + 5, "var(--gain)", "Optimist"]];
+  const series = sc.map(([r, c, nm]) => {
+    const rm = Math.pow(1 + r / 100, 1 / 12) - 1; let v = v0; const arr = [v];
+    for (let k = 1; k <= n; k++) { v = v * (1 + rm) + simP.m; arr.push(v); }
+    return { v: arr, c, nm };
+  });
+  const base = series[1].v[n], ym = i => Math.floor(i / 12) + " ani " + (i % 12) + " luni";
+  const cfg = {
+    id: "sim", n: n + 1, step: 12 * Math.max(1, Math.ceil(simP.y / 6)), lines: series.map(x => ({ v: x.v, c: x.c })),
+    xl: i => Math.round(i / 12) + " a", info: i => `<b>După ${ym(i)}</b><br>` + series.map(x => x.nm + " " + money(x.v[i])).join(" · ")
+  };
+  CH.sim = cfg;
+  const tile = (lbl, v, c) => `<div class="t"><span>${lbl}</span><b class="${c || ""}">${money(v)}</b></div>`;
+  const open = positions().filter(p => p.q > 0), tv = curValue();
+  const rows = open.map(p => { const x = parseFloat(state.px[p.s]), val = x > 0 ? p.q * x : p.c, w = val / tv, px = x > 0 ? x : p.c / p.q; return { s: p.s, w, amt: simP.m * w, sh: simP.m * w / px }; }).sort((a, b) => b.w - a.w);
+  const alloc = rows.length && simP.m > 0 ? `<div class="card"><div class="sub" style="margin-bottom:8px">Cum ai împărți suma lunară, după ponderile de acum</div>` + rows.map(r =>
+    `<div class="tr" style="grid-template-columns:14px 1fr auto"><i class="dot" style="background:${col(r.s)};margin:0"></i><div><b>${esc(r.s)}</b> <span class="sub">${money(r.w * 100)}%</span></div><div class="v">${money(r.amt)}<div class="sub">≈ ${r.sh.toLocaleString("ro-RO", { maximumFractionDigits: 2 })} acțiuni</div></div></div>`).join("") + `</div>` : "";
+  $("simout").innerHTML = `<div class="stats">${tile("Total investit", put + v0)}${tile("Valoare estimată", base, "pos")}${tile("Câștig estimat", base - put - v0, cls(base - put - v0))}</div>
+    <div class="card"><div class="lgd"><span><i style="background:var(--loss)"></i>Pesimist ${sc[0][0].toLocaleString("ro-RO")}%</span><span><i style="background:var(--g2)"></i>De bază ${sc[1][0].toLocaleString("ro-RO")}%</span><span><i style="background:var(--gain)"></i>Optimist ${sc[2][0].toLocaleString("ro-RO")}%</span></div>
+    <div class="ro" id="ro-sim">${cfg.info(n)}</div>${draw(cfg)}</div>${alloc}
+    <div class="sub" style="padding:4px 8px">Estimare simplă, cu dobândă compusă lunară. Randamentele reale variază și pot fi negative; nu e o promisiune și nu e recomandare de investiții.</div>`;
+  if (interactive) $("main").classList.remove("anim");
+}
 // interacțiuni
-$("tabs").onclick = e => { const t = e.target.dataset.t; if (t) { const o = { pos: 0, tr: 1, dv: 2 }; dirNext = o[t] > o[tab] ? 1 : -1; tab = t; animateNext = true; render(); } };
+$("tabs").onclick = e => { const t = e.target.dataset.t; if (t) { const o = { pos: 0, tr: 1, ev: 2, sim: 3 }; dirNext = o[t] > o[tab] ? 1 : -1; tab = t; animateNext = true; render(); } };
 $("main").onchange = e => {
   const s = e.target.dataset.s;
   if (s) { const v = parseFloat(e.target.value); if (v > 0) state.px[s] = v; else delete state.px[s]; save(); const f = document.getElementById("px-" + s); if (f) f.classList.add("okf"); }
@@ -492,14 +618,13 @@ $("main").onclick = e => {
 function setKind(k) {
   kind = k;
   document.querySelectorAll("#kind button").forEach(b => b.classList.toggle("on", b.dataset.k === k));
-  $("trf").hidden = $("fee").hidden = k === "D";
-  $("dvf").hidden = k !== "D";
+  
 }
 $("kind").onclick = e => { if (e.target.dataset.k) setKind(e.target.dataset.k); };
 $("add").onclick = () => {
-  ["fs", "fq", "fp", "ff", "fa"].forEach(i => $(i).value = "");
+  ["fs", "fq", "fp", "ff"].forEach(i => $(i).value = "");
   $("fd").value = new Date().toISOString().slice(0, 10);
-  setKind(tab === "dv" ? "D" : "B");
+  setKind("B");
   $("dlg").showModal();
 };
 $("cancel").onclick = () => $("dlg").close();
@@ -507,11 +632,7 @@ $("save").onclick = () => {
   const d = $("fd").value, s = $("fs").value.trim().toUpperCase();
   if (!d || !s) return alert("Completează data și simbolul.");
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  if (kind === "D") {
-    const a = parseFloat($("fa").value);
-    if (!(a > 0)) return alert("Completează suma încasată.");
-    state.dv.push({ id, d, s, a });
-  } else {
+  {
     const q = parseFloat($("fq").value), p = parseFloat($("fp").value), f = parseFloat($("ff").value) || 0;
     if (!(q > 0) || !(p > 0)) return alert("Completează numărul de acțiuni și prețul.");
     state.tr.push({ id, d, s, t: kind, q, p, f });
@@ -523,7 +644,7 @@ let pxInit = false, lastAdded = [];
 function setLive(text, ok) { const b = $("live"); b.textContent = text; b.classList.toggle("off", !ok); }
 async function refreshPrices() {
   if (!WORKER_URL) { setLive("Prețuri introduse manual · adaugă WORKER_URL pentru BVB", false); return 0; }
-  const syms = [...new Set(positions().filter(p => p.q > 0).map(p => p.s))];
+  const syms = [...new Set([...positions().filter(p => p.q > 0).map(p => p.s), ...state.wl.map(w => w.s)])];
   if (!syms.length) return 0;
   try {
     setLive("Se actualizează prețurile…", true);
@@ -551,11 +672,6 @@ function localParse(text) {
   if (m) d = m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0");
   const re = /(cumpar\w*|vand\w*)\s+(\d+(?:[.,]\d+)?)\s+(?:actiuni\s+|unitati\s+)?([a-z][a-z0-9]{1,9})\s+(?:la|@|cu|pret)\s*(?:pretul\s*)?(\d+(?:[.,]\d+)?)/g;
   for (const x of t.matchAll(re)) actions.push({ type: x[1].startsWith("cump") ? "buy" : "sell", d, s: x[3].toUpperCase(), q: toNum(x[2]), p: toNum(x[4]) });
-  if (/dividend/.test(t)) {
-    const s = known().find(k => t.includes(k.toLowerCase()));
-    const nums = [...t.replace(/\d{1,2}[.\/-]\d{1,2}[.\/-]\d{4}/g, "").matchAll(/\d+(?:[.,]\d+)?/g)];
-    if (s && nums.length) actions.push({ type: "dividend", d, s, a: toNum(nums[nums.length - 1][0]) });
-  }
   if (/(actualiz|reimprosp|refresh|update)/.test(t) && /(pret|cotati|bvb|bursa)/.test(t)) actions.push({ type: "refresh" });
   return { actions, reply: actions.length ? "" : "Nu am înțeles. Încearcă: „am cumpărat 5 EVER la 3,45” sau „actualizează prețurile”." };
 }
@@ -593,11 +709,6 @@ async function runActions(j) {
       state.tr.push({ id, d: a.d || iso(), s, t: a.type === "buy" ? "B" : "V", q, p, f: +a.f || 0 });
       added.push(["tr", id]);
       msgs.push((a.type === "buy" ? "Cumpărat " : "Vândut ") + qty(q) + " " + s + " la " + money(p) + " RON (" + (a.d || iso()) + ")");
-    } else if (a.type === "dividend") {
-      const v = +a.a;
-      if (!s || !(v > 0)) { msgs.push("Mi-au lipsit simbolul sau suma dividendului."); continue; }
-      state.dv.push({ id, d: a.d || iso(), s, a: v }); added.push(["dv", id]);
-      msgs.push("Dividend " + s + ": " + money(v) + " RON");
     } else if (a.type === "refresh") refresh = true;
   }
   if (j.reply) msgs.unshift(j.reply);
