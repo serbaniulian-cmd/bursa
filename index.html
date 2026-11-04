@@ -210,6 +210,57 @@ input[type=range]{padding:0;background:none;accent-color:var(--g2);height:28px}
 .send input{border-radius:99px;padding-left:18px}
 .send button{width:48px;height:48px;border-radius:50%;font-size:22px;font-weight:700}
 .chips button{background:var(--fill);border:1px solid var(--line)}
+
+/* bara Meniscus */
+#tabs{display:flex;position:sticky;top:0;height:88px;margin:6px 16px 4px;padding:0 14px;gap:0;background:none;border-radius:0;box-shadow:none;z-index:5;pointer-events:none;transition:none}
+#tabs.stuck{box-shadow:none}
+#tabs.stuck #mbg{filter:drop-shadow(0 12px 16px rgba(60,50,140,.22))}
+#mbg{position:absolute;left:0;top:0;width:100%;height:92px;overflow:visible;z-index:1;pointer-events:none}
+#mpath{fill:var(--card);stroke:var(--line);stroke-width:1}
+#glow{position:absolute;left:0;top:52px;width:160px;height:110px;background:radial-gradient(closest-side,rgba(139,77,255,.38),transparent);z-index:0;pointer-events:none;will-change:transform}
+#bead{position:absolute;left:0;top:0;width:48px;height:48px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#e0d8ff,var(--g1) 50%,var(--g2) 80%,var(--g3) 135%);display:grid;place-items:center;z-index:3;pointer-events:auto;touch-action:none;cursor:grab;box-shadow:0 8px 20px rgba(139,77,255,.55),inset 0 0 0 1px rgba(255,255,255,.35);will-change:transform}
+#bead:not(.ready){opacity:0}
+#bead:active{cursor:grabbing}
+#bead svg{position:absolute;width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(.4) rotate(-40deg);transition:opacity .25s,transform .4s cubic-bezier(.3,1.4,.4,1)}
+#bead svg.on{opacity:1;transform:none}
+#tabs button{position:relative;z-index:2;flex:1;height:88px;padding:32px 0 0;margin:0;background:none;border:0;border-radius:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--mute);pointer-events:auto;overflow:visible;font:inherit}
+#tabs button .ic{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s,transform .3s}
+#tabs button.on{background:none;color:var(--g2)}
+#tabs button.on .ic{opacity:0;transform:scale(.4)}
+#tabs button .lb{position:absolute;left:0;right:0;bottom:7px;text-align:center;font-size:11px;font-weight:700;color:var(--g2);opacity:0;transform:translateY(5px);transition:opacity .3s,transform .35s cubic-bezier(.3,1.4,.4,1)}
+#tabs button.on .lb{opacity:1;transform:none}
+#tabs button:hover:not(.on){color:var(--ink)}
+
+/* tranziție lichidă pentru bara luminoasă */
+@property --c1{syntax:"<color>";inherits:true;initial-value:#5b4bff}
+@property --c2{syntax:"<color>";inherits:true;initial-value:#8b4dff}
+@property --c3{syntax:"<color>";inherits:true;initial-value:#ff5fa2}
+#tabs{--c1:#5b4bff;--c2:#8b4dff;--c3:#ff5fa2;transition:--c1 .7s ease,--c2 .7s ease,--c3 .7s ease}
+#tabs[data-tab="tr"]{--c1:#2f6bff;--c2:#1fb2ff;--c3:#7be3ff}
+#tabs[data-tab="ev"]{--c1:#0c8f6b;--c2:#22c493;--c3:#9af3cb}
+#tabs[data-tab="sim"]{--c1:#ff5a4d;--c2:#ff5fa2;--c3:#ffb36b}
+#bead{background:radial-gradient(circle at 32% 28%,#fff6,var(--c1) 50%,var(--c2) 80%,var(--c3) 135%);box-shadow:0 8px 20px color-mix(in srgb,var(--c2) 55%,transparent),inset 0 0 0 1px rgba(255,255,255,.35)}
+#glow{background:radial-gradient(closest-side,color-mix(in srgb,var(--c2) 42%,transparent),transparent)}
+#mpath{stroke:color-mix(in srgb,var(--c2) 38%,var(--line))}
+#tabs button.on,#tabs button .lb{color:var(--c2)}
+@keyframes wave{from{transform:scale(1);opacity:.75}to{transform:scale(2.7);opacity:0}}
+@keyframes trl{from{opacity:.75;transform:scale(1.5)}to{opacity:0;transform:scale(.2)}}
+.wave{position:absolute;top:3px;width:48px;height:48px;border-radius:50%;border:2px solid var(--c2);pointer-events:none;z-index:2;animation:wave .85s cubic-bezier(.2,.7,.3,1) forwards}
+.trl{position:absolute;top:21px;width:12px;height:12px;border-radius:50%;background:var(--c2);filter:blur(3px);pointer-events:none;z-index:2;animation:trl .6s ease-out forwards}
+
+/* cardul de sus: culori care se schimbă în timp */
+@property --ha{syntax:"<color>";inherits:true;initial-value:#5b4bff}
+@property --hb{syntax:"<color>";inherits:true;initial-value:#8b4dff}
+@property --hc{syntax:"<color>";inherits:true;initial-value:#ff5fa2}
+@keyframes hcycle{
+  0%,18%{--ha:#5b4bff;--hb:#8b4dff;--hc:#ff5fa2}
+  25%,43%{--ha:#0b6fd6;--hb:#1aa7c9;--hc:#4f8cff}
+  50%,68%{--ha:#047857;--hb:#0e9f8e;--hc:#2f9e44}
+  75%,93%{--ha:#7c3aed;--hb:#c026d3;--hc:#f0529c}
+  100%{--ha:#5b4bff;--hb:#8b4dff;--hc:#ff5fa2}
+}
+.hero{background:linear-gradient(135deg,var(--ha) 0%,var(--hb) 55%,var(--hc) 130%);background-size:200% 200%;animation:flow 14s ease-in-out infinite alternate,hcycle 48s ease-in-out infinite;box-shadow:0 10px 30px color-mix(in srgb,var(--hb) 38%,transparent)}
+input[type=checkbox]{accent-color:var(--g2)}
 </style>
 </head>
 <body>
@@ -222,11 +273,10 @@ input[type=range]{padding:0;background:none;accent-color:var(--g2);height:28px}
   </div>
 </header>
 <nav id="tabs">
-  <span id="pill"></span>
-  <button data-t="pos" class="on">Poziții</button>
-  <button data-t="tr">Tranzacții</button>
-  <button data-t="ev">Evoluție</button>
-  <button data-t="sim">Simulator</button>
+  <div id="glow"></div>
+  <svg id="mbg" aria-hidden="true"><path id="mpath"/></svg>
+  <div id="bead" aria-hidden="true"><svg data-t="pos" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l7.8 4.5"/></svg><svg data-t="tr" viewBox="0 0 24 24"><path d="M4 8h15m0 0-3.500-3.500M19 8l-3.500 3.500M20 16H5m0 0 3.500-3.500M5 16l3.500 3.500"/></svg><svg data-t="ev" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg><svg data-t="sim" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></div>
+  <button data-t="pos" class="on"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l7.8 4.5"/></svg><span class="lb">Poziții</span></button><button data-t="tr"><svg class="ic" viewBox="0 0 24 24"><path d="M4 8h15m0 0-3.500-3.500M19 8l-3.500 3.500M20 16H5m0 0 3.500-3.500M5 16l3.500 3.500"/></svg><span class="lb">Tranzacții</span></button><button data-t="ev"><svg class="ic" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg><span class="lb">Evoluție</span></button><button data-t="sim"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span class="lb">Simulator</span></button>
 </nav>
 <main id="main"></main>
 <div id="st"></div>
@@ -264,7 +314,7 @@ input[type=range]{padding:0;background:none;accent-color:var(--g2);height:28px}
 <script>
 // Pune aici configurarea din noul proiect Firebase (Project settings > Your apps > Web).
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBhcqKI-BuANUFoGnG15qCG6PmUIbbmido",
+ apiKey: "AIzaSyBhcqKI-BuANUFoGnG15qCG6PmUIbbmido",
   authDomain: "bursa2027-5f1ad.firebaseapp.com",
   projectId: "bursa2027-5f1ad",
   storageBucket: "bursa2027-5f1ad.firebasestorage.app",
@@ -352,14 +402,73 @@ function countTo(v) {
   };
   raf = requestAnimationFrame(step);
 }
-function movePill() {
-  const on = document.querySelector("#tabs button.on"), p = $("pill");
-  if (!on) return;
-  p.style.width = on.offsetWidth + "px";
-  p.style.transform = "translateX(" + on.offsetLeft + "px)";
-  if (!p.classList.contains("ready")) requestAnimationFrame(() => p.classList.add("ready"));
+let bx = null, btarget = 0, braf = 0, bvel = 0, dragging = false;
+function centers() { return [...document.querySelectorAll("#tabs button")].map(b => b.offsetLeft + b.offsetWidth / 2); }
+function drawBar(x) {
+  const nav = $("tabs"), W = nav.clientWidth, Y0 = 32, H = 56, R = 18, h0 = 12;
+  const cx = Math.max(R + 36, Math.min(W - R - 36, x)), sp = Math.min(Math.abs(bvel), 30);
+  const bw = Math.min(36 + sp * 1.3, cx - R, W - R - cx), h = Math.max(5, h0 - sp * .24), a = cx - bw, b = cx + bw;
+  const d = `M${R} ${Y0}H${a}C${a + bw * .55} ${Y0} ${cx - bw * .45} ${Y0 - h} ${cx} ${Y0 - h}C${cx + bw * .45} ${Y0 - h} ${b - bw * .55} ${Y0} ${b} ${Y0}H${W - R}Q${W} ${Y0} ${W} ${Y0 + R}V${Y0 + H - R}Q${W} ${Y0 + H} ${W - R} ${Y0 + H}H${R}Q0 ${Y0 + H} 0 ${Y0 + H - R}V${Y0 + R}Q0 ${Y0} ${R} ${Y0}Z`;
+  $("mbg").setAttribute("viewBox", `0 0 ${W} ${Y0 + H + 4}`);
+  $("mpath").setAttribute("d", d);
+  const sx = 1 + Math.min(.3, sp / 34);
+  $("bead").style.transform = `translate(${cx - 24}px,3px) scale(${sx},${1 / sx})`;
+  $("glow").style.transform = `translateX(${cx - 80}px) scaleX(${1 + sp / 20})`;
 }
+let tcount = 0;
+function trail() {
+  if (calm || Math.abs(bvel) < 4 || ++tcount % 2) return;
+  const t = document.createElement("i"); t.className = "trl"; t.style.left = (bx - 6) + "px";
+  $("tabs").appendChild(t); t.addEventListener("animationend", () => t.remove());
+}
+function wave() {
+  if (calm) return;
+  const w = document.createElement("i"); w.className = "wave"; w.style.left = (bx - 24) + "px";
+  $("tabs").appendChild(w); w.addEventListener("animationend", () => w.remove());
+}
+function beadTo(x, instant) {
+  btarget = x; cancelAnimationFrame(braf);
+  if (bx === null || instant || calm) { bx = x; bvel = 0; drawBar(bx); return; }
+  const step = () => {
+    const d = btarget - bx;
+    bvel += d * .1; bvel *= .7; bx += bvel;
+    if (Math.abs(d) < .3 && Math.abs(bvel) < .3) { bx = btarget; bvel = 0; drawBar(bx); wave(); return; }
+    drawBar(bx); trail(); braf = requestAnimationFrame(step);
+  };
+  braf = requestAnimationFrame(step);
+}
+function movePill() {
+  const on = document.querySelector("#tabs button.on"); if (!on) return;
+  document.querySelectorAll("#bead svg").forEach(v => v.classList.toggle("on", v.dataset.t === tab));
+  $("tabs").dataset.tab = tab;
+  const fresh = !$("bead").classList.contains("ready");
+  beadTo(on.offsetLeft + on.offsetWidth / 2, fresh);
+  $("bead").classList.add("ready");
+}
+function goTab(t) {
+  const o = { pos: 0, tr: 1, ev: 2, sim: 3 };
+  if (t === tab) { movePill(); return; }
+  dirNext = o[t] > o[tab] ? 1 : -1; tab = t; animateNext = true; render();
+}
+(function () {
+  const bead = $("bead");
+  const end = () => {
+    if (!dragging) return; dragging = false;
+    const cs = centers(), keys = ["pos", "tr", "ev", "sim"];
+    let k = 0; cs.forEach((c, i) => { if (Math.abs(c - bx) < Math.abs(cs[k] - bx)) k = i; });
+    goTab(keys[k]); if (keys[k] === tab) beadTo(cs[k]);
+  };
+  bead.addEventListener("pointerdown", e => { dragging = true; bead.setPointerCapture(e.pointerId); cancelAnimationFrame(braf); e.preventDefault(); });
+  bead.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    const cs = centers(), r = $("tabs").getBoundingClientRect(), prev = bx;
+    bx = Math.max(cs[0], Math.min(cs[cs.length - 1], e.clientX - r.left)); bvel = bx - prev; drawBar(bx); trail();
+  });
+  bead.addEventListener("pointerup", end);
+  bead.addEventListener("pointercancel", end);
+})();
 window.addEventListener("resize", movePill);
+movePill();
 
 function runCounts() {
   if (calm) return;
@@ -399,7 +508,7 @@ function confetti(x, y) {
   })();
 }
 document.addEventListener("pointerdown", e => {
-  const b = e.target.closest("button"); if (!b || calm) return;
+  const b = e.target.closest("button"); if (!b || calm || b.closest("#tabs")) return;
   const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2, n = document.createElement("span");
   n.className = "rip";
   n.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
@@ -459,10 +568,17 @@ function render() {
   if (!pxInit && (state.tr.length || state.wl.length)) { pxInit = true; refreshPrices(); }
 }
 
-const PAL = ["#6d5efc", "#ff6b8b", "#12c2a5", "#ffb020", "#3da9fc", "#b45cf0", "#ff8a3d", "#2bb673"];
+const PAL = ["#5b4bff", "#ff5fa2", "#00b8a3", "#ffb020", "#2f9bff", "#ff6a3d", "#6fcf3a", "#c04cf0", "#8a5a44", "#7a8ca5", "#d4c000", "#e0245e"];
 function col(sym) {
-  const syms = [...new Set(state.tr.map(x => x.s))].sort();
-  return PAL[Math.max(0, syms.indexOf(sym)) % PAL.length];
+  // culoarea rămâne a simbolului: se atribuie în ordinea primei cumpărări
+  const order = [...new Set([...state.tr].sort((a, b) => a.d.localeCompare(b.d)).map(x => x.s))];
+  const i = Math.max(0, order.indexOf(sym));
+  return i < PAL.length ? PAL[i] : "hsl(" + Math.round((i * 137.5) % 360) + " 68% 50%)";
+}
+function txt(c) {
+  const m = /^#([0-9a-f]{6})$/i.exec(c); if (!m) return "#fff";
+  const v = [0, 2, 4].map(k => { const x = parseInt(m[1].slice(k, k + 2), 16) / 255; return x <= .03928 ? x / 12.92 : Math.pow((x + .055) / 1.055, 2.4); });
+  return .2126 * v[0] + .7152 * v[1] + .0722 * v[2] > .35 ? "#1a1530" : "#fff";
 }
 function donut(open) {
   const rows = open.map(p => { const px = parseFloat(state.px[p.s]); return { s: p.s, v: px > 0 ? p.q * px : p.c }; })
@@ -489,7 +605,7 @@ function viewPos(open, missing) {
     const has = px > 0, val = has ? p.q * px : 0, pl = has ? val - p.c : 0, pct = has ? pl / p.c * 100 : 0;
     const share = ((has ? val : p.c) / totV * 100).toFixed(1);
     return `<div class="card"><div class="pr">
-      <div class="av" style="background:${col(p.s)}">${esc(p.s.slice(0, 3))}</div>
+      <div class="av" style="background:${col(p.s)};color:${txt(col(p.s))}">${esc(p.s.slice(0, 3))}</div>
       <div><div class="sym">${esc(p.s)}</div><div class="sub">${qty(p.q)} acțiuni · medie ${money(avg)}</div></div>
       <div class="v"><span class="cu" data-to="${has ? val : p.c}" data-f="m">${money(has ? val : p.c)}</span><div class="sub ${has ? cls(pl) : ""}">${has ? `<span class="cu" data-to="${pl}" data-f="s">${sign(pl)}</span>` + " (" + (pct > 0 ? "+" : "") + money(pct) + "%)" : "investit"}</div></div>
       </div>
@@ -637,7 +753,7 @@ function updateSim(interactive) {
   if (interactive) $("main").classList.remove("anim");
 }
 // interacțiuni
-$("tabs").onclick = e => { const t = e.target.dataset.t; if (t) { const o = { pos: 0, tr: 1, ev: 2, sim: 3 }; dirNext = o[t] > o[tab] ? 1 : -1; tab = t; animateNext = true; render(); } };
+$("tabs").onclick = e => { const b = e.target.closest("button[data-t]"); if (b) goTab(b.dataset.t); };
 $("main").onchange = e => {
   const s = e.target.dataset.s;
   if (s) { const v = parseFloat(e.target.value); if (v > 0) state.px[s] = v; else delete state.px[s]; save(); const f = document.getElementById("px-" + s); if (f) f.classList.add("okf"); }
