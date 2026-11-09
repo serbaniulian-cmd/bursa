@@ -359,6 +359,31 @@ html{background:#070a1c}
 .hero{background:linear-gradient(135deg,color-mix(in srgb,var(--ha) 58%,transparent) 0%,color-mix(in srgb,var(--hb) 30%,transparent) 60%,color-mix(in srgb,var(--hc) 34%,transparent) 130%);-webkit-backdrop-filter:blur(30px) saturate(190%);backdrop-filter:blur(30px) saturate(190%);border-color:rgba(255,255,255,.34)}
 .lnk,.impbtn{color:#c9bcff}
 #askb{text-shadow:0 1px 8px rgba(0,0,0,.55)}
+/* stâlpi 3D: cristal transparent, ca în varianta A (verde la câștig, roz la pierdere, violet când nu e preț) */
+.fc{border:1px solid rgba(255,255,255,.45);background:linear-gradient(180deg,rgba(var(--rgb),.82),rgba(var(--rgb),.16));box-shadow:inset 0 1px 0 rgba(255,255,255,.7);border-radius:7px 7px 3px 3px}
+.fc::after{opacity:.38}
+.fc.top{border-radius:7px;background:linear-gradient(135deg,rgba(255,255,255,.8),rgba(var(--rgb),.55))}
+/* stâlpi plați, statici, câte o culoare pe companie (ca în varianta A) */
+.scene.flat{perspective:none;cursor:default;height:250px;position:relative}
+.scene.flat.drag{cursor:default}
+.scene.flat .stage3d{position:absolute;left:16px;right:16px;top:34px;bottom:46px;width:auto;height:auto;transform:none;display:flex;align-items:flex-end;justify-content:space-around;gap:6px}
+.scene.flat .col{position:relative;left:auto;top:auto;transform:none;width:auto;height:var(--h);flex:1 1 0;max-width:46px;min-width:14px}
+.scene.flat .fc{position:absolute;left:0;bottom:0;width:100%;height:100%;transform:none;filter:none;border-radius:12px 12px 6px 6px;border:1px solid rgba(255,255,255,.45);background:linear-gradient(180deg,rgba(var(--rgb),.85),rgba(var(--rgb),.16));box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+.scene.flat .col::before{display:none}
+.scene.flat .lab{left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);padding:0;border:0;background:none;font-size:11px;font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.scene.flat.dense .lab{font-size:10px}
+/* cardurile de companii: rând compact ca în varianta A; la atingere se deschid țintă și alerte */
+.card:has(.pr){border-radius:26px;padding:14px 16px}
+.card .pr{display:flex;align-items:center;gap:12px;cursor:pointer}
+.card .pr>div:first-child{flex:1;min-width:0}
+.card .pr .sym{font-weight:650}
+.card .pr .sub{font-size:12px;margin-top:2px}
+.card .pr .v{text-align:right;font-weight:650}
+.mini{flex:none}
+details.more summary{color:#d8ceff}
+.card .xp{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.card.exp .xp{display:block;animation:xpin .25s ease}
+@keyframes xpin{from{opacity:0;transform:translateY(-4px)}}
 #add{background:linear-gradient(135deg,rgba(255,255,255,.22),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.4);-webkit-backdrop-filter:blur(22px) saturate(190%);backdrop-filter:blur(22px) saturate(190%);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 14px 34px rgba(0,0,0,.45)}
 .b.me{background:linear-gradient(135deg,rgba(139,92,255,.6),rgba(40,190,255,.4));border:1px solid rgba(255,255,255,.28)}
 </style>
@@ -636,7 +661,7 @@ addEventListener("scroll", () => {
   $("tabs").classList.toggle("stuck", scrollY > 170);
 }, { passive: true });
 // ---- selecție comună: donut + scenă 3D ----
-let selSym = "", openDet = new Set();
+let selSym = "", openDet = new Set(), openCards = new Set();
 function selectSym(sym) {
   selSym = selSym === sym ? "" : sym;
   const al = document.querySelector(".alloc");
@@ -655,7 +680,7 @@ function selectSym(sym) {
       const on = !!selSym && c.dataset.s === selSym; c.classList.toggle("on", on);
       if (on) info = c.dataset.s + " · " + c.dataset.p.replace(".", ",") + "% · " + money(+c.dataset.v) + " RON";
     });
-    sc.querySelector(".rd").textContent = info || "Trage ca să rotești · atinge o coloană";
+    sc.querySelector(".rd").textContent = info || "Atinge o coloană";
   }
 }
 $("main").addEventListener("click", e => {
@@ -667,6 +692,14 @@ $("main").addEventListener("toggle", e => {
   d.open ? openDet.add(d.dataset.s) : openDet.delete(d.dataset.s);
 }, true);
 
+$("main").addEventListener("click", e => {
+  const h = e.target.closest(".card .pr"); if (!h) return;
+  const c = h.parentElement, on = !c.classList.contains("exp");
+  c.classList.toggle("exp", on); h.setAttribute("aria-expanded", on);
+  on ? openCards.add(c.dataset.s) : openCards.delete(c.dataset.s);
+});
+$("main").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(".card .pr")){ e.preventDefault(); e.target.click(); } });
+
 // ---- scena 3D ----
 let sceneAng = 24, sceneDrag = null, sceneMoved = 0, sceneVisible = true;
 const sio = "IntersectionObserver" in window ? new IntersectionObserver(es => { sceneVisible = es.some(x => x.isIntersecting); }) : { observe() {}, disconnect() {} };
@@ -674,14 +707,12 @@ function hex2rgb(c) { const m = /^#([0-9a-f]{6})$/i.exec(c); return m ? [0, 2, 4
 function sceneHTML(rows) {
   const n = rows.length, tot = rows.reduce((a, r) => a + r.v, 0);
   if (!n || !(tot > 0)) return "";
-  const max = Math.max(...rows.map(r => r.v)), W = n <= 3 ? 56 : n <= 6 ? 44 : n <= 9 ? 34 : 28;
-  const R = n === 1 ? 0 : Math.max(60, Math.min(122, n * (W + 32) / (2 * Math.PI)));
+  const max = Math.max(...rows.map(r => r.v));
   const cols = rows.map((r, i) => {
-    const a = i / n * 2 * Math.PI, x = (R * Math.sin(a)).toFixed(1), z = (R * Math.cos(a)).toFixed(1);
-    const h = Math.round(26 + Math.sqrt(r.v / max) * 116);
-    return `<div class="col" data-s="${esc(r.s)}" data-p="${(r.v / tot * 100).toFixed(1)}" data-v="${r.v}" style="--x:${x}px;--z:${z}px;--w:${W}px;--h:${h}px;--i:${i};--rgb:${hex2rgb(col(r.s))}"><i class="fc a"></i><i class="fc b"></i><i class="fc c"></i><i class="fc d"></i><i class="fc top"></i><span class="lab">${esc(r.s)}</span></div>`;
+    const h = Math.round(22 + Math.sqrt(r.v / max) * 128), pc = r.v / tot * 100;
+    return `<div class="col" data-s="${esc(r.s)}" data-p="${pc.toFixed(1)}" data-v="${r.v}" style="--h:${h}px;--i:${i};--rgb:${hex2rgb(col(r.s))}"><i class="fc a"></i><span class="lab">${pc >= 1 ? Math.round(pc) : "<1"}%</span></div>`;
   }).join("");
-  return `<div class="scene${n > 6 ? " dense" : ""}" role="img" aria-label="Portofoliul ca stâlpi de sticlă, după valoare"><div class="stage3d" style="--ry:${sceneAng}deg"><div class="floor"></div>${cols}</div><div class="rd">Trage ca să rotești · atinge o coloană</div></div>`;
+  return `<div class="scene flat${n > 6 ? " dense" : ""}" role="img" aria-label="Portofoliul ca stâlpi de sticlă, după valoare"><div class="stage3d">${cols}</div><div class="rd">Atinge o coloană</div></div>`;
 }
 function scenePost() {
   if (selSym && !document.querySelector('.col[data-s="' + CSS.escape(selSym) + '"]')) selSym = "";
@@ -693,7 +724,7 @@ function scenePost() {
   requestAnimationFrame(sceneLoop);
   const st = document.querySelector(".stage3d");
   if (!st || document.hidden || !sceneVisible) return;
-  if (!sceneDrag && !calm) sceneAng += .12;
+  
   st.style.setProperty("--ry", sceneAng + "deg");
 })();
 $("main").addEventListener("pointerdown", e => {
@@ -757,6 +788,14 @@ function spark(s) {
   const d = a.map((x, i) => (i ? "L" : "M") + X(x[0]).toFixed(1) + " " + Y(x[1]).toFixed(1)).join(" ");
   const c = vs[vs.length - 1] >= vs[0] ? "var(--gain)" : "var(--loss)", id = "sp-" + s.replace(/[^A-Za-z0-9]/g, "");
   return `<svg class="spk" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".28"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs><path d="${d} L${X(t1).toFixed(1)} 30 L${X(t0).toFixed(1)} 30 Z" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${c}" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function miniSpark(s, up) {
+  const a = series(s); if (a.length < 2) return '<span class="mini" style="width:64px"></span>';
+  const t0 = a[0][0], t1 = a[a.length - 1][0], vs = a.map(x => x[1]), lo = Math.min(...vs), hi = Math.max(...vs);
+  const X = t => t1 > t0 ? (t - t0) / (t1 - t0) * 64 : 32, Y = v => hi > lo ? 24 - (v - lo) / (hi - lo) * 20 : 14;
+  const pts = a.map(x => X(x[0]).toFixed(1) + "," + Y(x[1]).toFixed(1)).join(" ");
+  const c = (up === undefined ? vs[vs.length - 1] >= vs[0] : up) ? "var(--gain)" : "var(--loss)";
+  return `<svg class="mini" width="64" height="28" viewBox="0 0 64 28" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 function dayChange(open) {
   const t = iso(), hp = state.hp || {}, days = Object.keys(hp).filter(k => k < t).sort();
@@ -880,7 +919,7 @@ function donut(open) {
 
 function viewPos(open, missing) {
   if (!open.length) return `<div class="empty">Nicio poziție deschisă.<br>Apasă + ca să adaugi prima cumpărare.<br><br><button class="impbtn lnk">Importă din foaia Bani TradeVille</button></div>`;
-  const vals = open.map(p => { const x = parseFloat(state.px[p.s]); return { s: p.s, v: x > 0 ? p.q * x : p.c }; }).sort((a, b) => b.v - a.v);
+  const vals = open.map(p => { const x = parseFloat(state.px[p.s]); return { s: p.s, v: x > 0 ? p.q * x : p.c, g: x > 0 ? p.q * x - p.c : 0 }; }).sort((a, b) => b.v - a.v);
   const totV = vals.reduce((a, r) => a + r.v, 0);
   let h = sceneHTML(vals) + donut(open) + open.map(p => {
     const avg = p.c / p.q, px = parseFloat(state.px[p.s]);
@@ -895,22 +934,23 @@ function viewPos(open, missing) {
       mark = `<u class="tgm" style="left:${tgv}%"></u>`;
     }
     const nset = (tgv > 0 ? 1 : 0) + (al.lo > 0 ? 1 : 0) + (al.hi > 0 ? 1 : 0);
-    return `<div class="card${al.hit ? " alerted" : ""}"><div class="pr">
-      <div class="av" style="background:${col(p.s)};color:${txt(col(p.s))}">${esc(p.s.slice(0, 3))}</div>
-      <div><div class="sym">${esc(p.s)}</div><div class="sub">${qty(p.q)} acțiuni · medie ${money(avg)}</div></div>
-      <div class="v"><span class="cu" data-to="${cv}" data-f="m">${money(cv)}</span><div class="sub ${has ? cls(pl) : ""}">${has ? `<span class="cu" data-to="${pl}" data-f="s">${sign(pl)}</span>` + " (" + (pct > 0 ? "+" : "") + money(pct) + "%)" : "investit"}</div></div>
+    return `<div class="card${al.hit ? " alerted" : ""}${openCards.has(p.s) ? " exp" : ""}" data-s="${esc(p.s)}"><div class="pr" role="button" tabindex="0" aria-expanded="${openCards.has(p.s)}">
+      <div><div class="sym">${esc(p.s)}</div><div class="sub">${qty(p.q)} acțiuni · ${has ? money(px) + " RON" : "medie " + money(avg) + " RON"}</div></div>
+      ${miniSpark(p.s, has ? pl >= 0 : undefined)}
+      <div class="v"><span class="cu" data-to="${cv}" data-f="m">${money(cv)}</span><div class="sub ${has ? cls(pl) : ""}">${has ? (pct > 0 ? "+" : "") + money(pct) + "%" : "investit"}</div></div>
       </div>
-      ${spark(p.s)}
+      <div class="xp">
+      <div class="sub ${has ? cls(pl) : ""}" style="margin-bottom:8px">${has ? "Profit latent " + sign(pl) + " RON · medie " + money(avg) + " RON" : "Fără preț curent · medie " + money(avg) + " RON"}</div>
       <div class="bar"><i style="width:${share}%;background:${col(p.s)};--bc:${col(p.s)}"></i>${mark}</div>
       ${tgi}
       <div class="px"><label for="px-${esc(p.s)}">Preț curent</label>
       <input id="px-${esc(p.s)}" data-s="${esc(p.s)}" type="number" inputmode="decimal" step="any" value="${has ? px : ""}" placeholder="RON"></div>
-      <details class="more" data-s="${esc(p.s)}" ${openDet.has(p.s) ? "open" : ""}><summary>Țintă și alerte${nset ? " (" + nset + ")" : ""}</summary>
+      <details class="more" data-s="${esc(p.s)}" open><summary>Țintă și alerte${nset ? " (" + nset + ")" : ""}</summary>
         <div class="grid3">
           <div><label>Țintă %</label><input type="number" inputmode="decimal" step="any" min="0" max="99" data-ts="${esc(p.s)}" value="${tgv || ""}" placeholder="%"></div>
           <div><label>Alertă sub</label><input type="number" inputmode="decimal" step="any" data-as="${esc(p.s)}" data-ak="lo" value="${al.lo || ""}" placeholder="RON"></div>
           <div><label>Alertă peste</label><input type="number" inputmode="decimal" step="any" data-as="${esc(p.s)}" data-ak="hi" value="${al.hi || ""}" placeholder="RON"></div>
-        </div></details></div>`;
+        </div></details></div></div>`;
   }).join("");
   if (missing) h += `<div class="sub" style="padding:4px 8px">Pentru ${missing} poziții fără preț curent, valoarea este egală cu suma investită.</div>`;
   h += `<div style="text-align:center"><button class="lnk" id="cpsum" type="button">Copiază rezumatul pentru agentul Finanțe</button></div>`;
