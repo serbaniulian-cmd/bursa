@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Bursa">
-<meta name="theme-color" content="#070a1c">
+<meta name="theme-color" content="#cfd1d6">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="bursa.webmanifest">
 <link rel="apple-touch-icon" href="bursa-192.png">
 <title>Bursa</title>
@@ -386,6 +386,82 @@ details.more summary{color:#d8ceff}
 @keyframes xpin{from{opacity:0;transform:translateY(-4px)}}
 #add{background:linear-gradient(135deg,rgba(255,255,255,.22),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.4);-webkit-backdrop-filter:blur(22px) saturate(190%);backdrop-filter:blur(22px) saturate(190%);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 14px 34px rgba(0,0,0,.45)}
 .b.me{background:linear-gradient(135deg,rgba(139,92,255,.6),rgba(40,190,255,.4));border:1px solid rgba(255,255,255,.28)}
+/* ===== Liquid glass ===== */
+.liquid-glass,
+.card,
+.alloc,
+.stats .t,
+.scene,
+dialog{
+  background: linear-gradient(135deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0.14) 100%);
+  backdrop-filter: blur(60px) saturate(180%);
+  -webkit-backdrop-filter: blur(60px) saturate(180%);
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,1);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.28), inset 0 1px 1px rgba(255,255,255,1);
+}
+
+/* ===== Temă gri/alb: culori doar în grafice și coloane ===== */
+:root{color-scheme:light;--ink:#1b1c21;--mute:#6a6d77;--line:rgba(0,0,0,.1);--fill:rgba(0,0,0,.06);--card:rgba(255,255,255,.6);--glass:rgba(255,255,255,.45);--glassb:rgba(255,255,255,.9);--glassh:#fff;--glassd:0 16px 44px -18px rgba(0,0,0,.3);--gain:#0f9d76;--loss:#e5384f;--ui1:#555963;--ui2:#22242b}
+html{background:linear-gradient(180deg,#d6d8dd 0%,#c4c7ce 100%) fixed}
+.orbs i:nth-child(1){background:radial-gradient(closest-side,rgba(255,255,255,.95),transparent)}
+.orbs i:nth-child(2){background:radial-gradient(closest-side,rgba(120,124,134,.45),transparent)}
+.orbs i:nth-child(3){background:radial-gradient(closest-side,rgba(255,255,255,.8),transparent)}
+/* card principal */
+.hero{background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,255,255,.3));color:var(--ink);border:1px solid #fff;box-shadow:0 25px 50px -12px rgba(0,0,0,.28),inset 0 1px 1px #fff;animation:none;background-size:auto}
+.hero::after{background:rgba(255,255,255,.7)}
+.hero::before{background:radial-gradient(circle at var(--mx,75%) var(--my,0%),rgba(255,255,255,.7),transparent 55%)}
+.hero .row span{background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.08)}
+.hero .pos{color:var(--gain)}.hero .neg{color:var(--loss)}
+.live{color:var(--ink)}
+.hero>.eye{color:var(--ink);background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.15)}
+/* bara de taburi: nuanțe de gri */
+#tabs,#tabs[data-tab="tr"],#tabs[data-tab="ev"],#tabs[data-tab="sim"]{--c1:#6a6d77;--c2:#2c2e35;--c3:#a3a6af}
+#tabs.stuck #mbg{filter:drop-shadow(0 12px 16px rgba(0,0,0,.2))}
+/* butoane și accente */
+.ok,.seg button.on,.send button,.b.me,nav button.on{background:linear-gradient(135deg,var(--ui1),var(--ui2));color:#fff;border-color:transparent}
+#add{background:linear-gradient(135deg,var(--ui1),var(--ui2));border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 14px 30px rgba(0,0,0,.3);animation:bump .6s .3s cubic-bezier(.3,1.4,.4,1) both}
+.lnk,.impbtn{color:var(--ui1)}
+details.more summary{color:var(--ui1);background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.12)}
+details.more[open] summary{background:rgba(0,0,0,.12)}
+input:focus{box-shadow:0 0 0 2px var(--ui1)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline-color:var(--ui1)}
+input[type=range],input[type=checkbox]{accent-color:var(--ui1)}
+.tgi{background:rgba(0,0,0,.06)}.tgi.ok{background:rgba(15,157,118,.14)}
+.bar{background:rgba(0,0,0,.1)}
+.scene.flat .lab{text-shadow:none}
+svg.ch{filter:drop-shadow(0 8px 14px rgba(0,0,0,.15))}
+@media (hover:hover){.card:not(:has(.tr)):hover,.alloc:hover{box-shadow:inset 0 1px 0 #fff,0 24px 56px -20px rgba(0,0,0,.35)}}
+/* asistent */
+#askb{color:var(--ink);text-shadow:none;box-shadow:0 10px 28px rgba(0,0,0,.2),0 0 0 1px var(--line);animation:bump .6s .4s cubic-bezier(.3,1.4,.4,1) both}
+.orb{background:radial-gradient(circle at 30% 25%,#fff,#9a9da6 55%,#3a3c44);box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.5)}
+.orb::before{background:conic-gradient(from 0deg,#555963,#fff,#9a9da6,#555963)}
+#ai{background:radial-gradient(circle at 100% 0,rgba(255,255,255,.7),transparent 55%),linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,255,255,.14))}
+.b.ai{background:rgba(255,255,255,.7)}
+
+/* ===== Inel colorat (curcubeu) pentru + și Asistent ===== */
+@property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes rgspin{to{--ang:360deg}}
+#add,#askb{overflow:visible}
+#add .rip,#askb .rip{display:none}
+#add{border-radius:50%;background:transparent;border:0;color:#fff;font-size:34px;font-weight:300;line-height:1;box-shadow:none;text-shadow:0 1px 6px rgba(0,0,0,.5);-webkit-backdrop-filter:none;backdrop-filter:none}
+#add::before{content:"";position:absolute;inset:-7px;border-radius:50%;background:conic-gradient(from var(--ang),#ffffff 0%,#ffcf4a 8%,#ff4d4d 16%,#d946ef 26%,#3b82f6 38%,#22d3ee 48%,#1a1b20 58%,#1a1b20 66%,#3dffb0 76%,#facc15 88%,#ffffff 100%);filter:blur(11px);opacity:.75;z-index:-1;animation:rgspin 6s linear infinite}
+#add::after{content:"";position:absolute;inset:0;border-radius:50%;border:3px solid transparent;background:radial-gradient(circle at 35% 25%,#4b4e57,#17181c 70%) padding-box,conic-gradient(from var(--ang),#ffffff 0%,#ffcf4a 8%,#ff4d4d 16%,#d946ef 26%,#3b82f6 38%,#22d3ee 48%,#1a1b20 58%,#1a1b20 66%,#3dffb0 76%,#facc15 88%,#ffffff 100%) border-box;box-shadow:inset 0 2px 6px rgba(255,255,255,.18),inset 0 -6px 12px rgba(0,0,0,.5);z-index:-1;animation:rgspin 6s linear infinite}
+.orb{background:radial-gradient(circle at 35% 25%,#4b4e57,#17181c 70%);box-shadow:inset 0 2px 5px rgba(255,255,255,.2),inset 0 -5px 10px rgba(0,0,0,.5)}
+.orb::before{inset:-3px;background:conic-gradient(from 0deg,#ffffff 0%,#ffcf4a 8%,#ff4d4d 16%,#d946ef 26%,#3b82f6 38%,#22d3ee 48%,#1a1b20 58%,#1a1b20 66%,#3dffb0 76%,#facc15 88%,#ffffff 100%);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3.5px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 3.5px),#000 calc(100% - 3px))}
+.orb::after{content:"";position:absolute;inset:-9px;border-radius:50%;background:conic-gradient(from 0deg,#ffffff 0%,#ffcf4a 8%,#ff4d4d 16%,#d946ef 26%,#3b82f6 38%,#22d3ee 48%,#1a1b20 58%,#1a1b20 66%,#3dffb0 76%,#facc15 88%,#ffffff 100%);filter:blur(9px);opacity:.7;z-index:-1;animation:spin 4s linear infinite}
+
+/* ===== Fundal: sticlă striată (reeded glass) în nuanțe de gri ===== */
+.orbs i:nth-child(1){background:radial-gradient(closest-side,rgba(255,255,255,.95),transparent)}
+.orbs i:nth-child(2){background:radial-gradient(closest-side,rgba(70,73,82,.5),transparent)}
+.orbs i:nth-child(3){background:radial-gradient(closest-side,rgba(40,42,50,.42),transparent)}
+.orbs::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.5) 0 1px,rgba(255,255,255,0) 1px 3px,rgba(0,0,0,.13) 3px 5px,rgba(0,0,0,0) 5px 8px),
+    repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0 1px,rgba(0,0,0,0) 1px 5px);
+  -webkit-mask:linear-gradient(115deg,#000 0%,rgba(0,0,0,.3) 38%,#000 66%,rgba(0,0,0,.45) 100%);
+  mask:linear-gradient(115deg,#000 0%,rgba(0,0,0,.3) 38%,#000 66%,rgba(0,0,0,.45) 100%)}
+.orbs::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(120% 80% at 50% 0%,transparent 40%,rgba(0,0,0,.14))}
 </style>
 </head>
 <body>
